@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Health Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f1117;
+            color: white;
+            padding: 20px;
+        }
+
+        .back {
+            color: rgba(255, 255, 255, .6);
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, .5);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #1e2130;
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: 900;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .5);
+            margin-top: 4px;
+        }
+
+        .stat-trend {
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .up {
+            color: #e74c3c;
+        }
+
+        .down {
+            color: #2ecc71;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: #1e2130;
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: rgba(255, 255, 255, .85);
+        }
+
+        .risk-table {
+            background: #1e2130;
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            margin-bottom: 20px;
+        }
+
+        .risk-table h3 {
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            font-size: 12px;
+            color: rgba(255, 255, 255, .4);
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        td {
+            padding: 10px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-high {
+            background: #e74c3c22;
+            color: #e74c3c;
+            border: 1px solid #e74c3c44;
+        }
+
+        .badge-low {
+            background: #2ecc7122;
+            color: #2ecc71;
+            border: 1px solid #2ecc7144;
+        }
+
+        .badge-med {
+            background: #f39c1222;
+            color: #f39c12;
+            border: 1px solid #f39c1244;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-green {
+            background: #00b894;
+            color: white;
+        }
+
+        .btn-purple {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-red {
+            background: #e74c3c;
+            color: white;
+        }
+
+        @media(max-width:600px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/" class="back">← Home</a>
+    <h1>📊 Health Risk Dashboard</h1>
+    <p class="subtitle">Real-time overview of all predictions and health analytics</p>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🩸</div>
+            <div class="stat-val" style="color:#e74c3c">72%</div>
+            <div class="stat-label">Diabetes Risk Score</div>
+            <div class="stat-trend up">↑ High Risk Zone</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">❤️</div>
+            <div class="stat-val" style="color:#2ecc71">34%</div>
+            <div class="stat-label">Heart Disease Risk</div>
+            <div class="stat-trend down">↓ Low Risk Zone</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🫀</div>
+            <div class="stat-val" style="color:#f39c12">58%</div>
+            <div class="stat-label">Liver Disease Risk</div>
+            <div class="stat-trend" style="color:#f39c12">→ Moderate Risk</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🫘</div>
+            <div class="stat-val" style="color:#2ecc71">21%</div>
+            <div class="stat-label">Kidney Disease Risk</div>
+            <div class="stat-trend down">↓ Low Risk Zone</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-title">Disease Risk Comparison</div>
+            <canvas id="barChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Overall Health Score</div>
+            <canvas id="radarChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Risk Level Distribution</div>
+            <canvas id="doughnutChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">Health Trend (Last 7 Days)</div>
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <div class="risk-table">
+        <h3>📋 Prediction History</h3>
+        <table>
+            <tr>
+                <th>Disease</th>
+                <th>Risk Score</th>
+                <th>Status</th>
+                <th>Recommendation</th>
+            </tr>
+            <tr>
+                <td>Diabetes</td>
+                <td>72%</td>
+                <td><span class="badge badge-high">High Risk</span></td>
+                <td>Consult endocrinologist immediately</td>
+            </tr>
+            <tr>
+                <td>Heart Disease</td>
+                <td>34%</td>
+                <td><span class="badge badge-low">Low Risk</span></td>
+                <td>Continue healthy lifestyle</td>
+            </tr>
+            <tr>
+                <td>Liver Disease</td>
+                <td>58%</td>
+                <td><span class="badge badge-med">Moderate</span></td>
+                <td>Reduce alcohol, get liver function test</td>
+            </tr>
+            <tr>
+                <td>Kidney Disease</td>
+                <td>21%</td>
+                <td><span class="badge badge-low">Low Risk</span></td>
+                <td>Stay hydrated, annual checkup</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-green" onclick="window.location.href='/report'">📄 Generate PDF Report</button>
+        <button class="btn btn-purple" onclick="window.location.href='/vitals'">💓 Live Vitals Monitor</button>
+        <button class="btn btn-red" onclick="window.location.href='/emergency'">🆘 Emergency SOS</button>
+    </div>
+
+    <script>
+        var chartOpts = { responsive: true, plugins: { legend: { labels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } } } }, scales: { x: { ticks: { color: 'rgba(255,255,255,0.5)' }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: 'rgba(255,255,255,0.5)' }, grid: { color: 'rgba(255,255,255,0.05)' } } } };
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Diabetes', 'Heart', 'Liver', 'Kidney'],
+                datasets: [{ label: 'Risk %', data: [72, 34, 58, 21], backgroundColor: ['#e74c3c', '#2ecc71', '#f39c12', '#3498db'], borderRadius: 8 }]
+            },
+            options: { ...chartOpts, plugins: { legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('radarChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Diabetes', 'Heart', 'Liver', 'Kidney', 'Nutrition', 'Exercise'],
+                datasets: [{
+                    label: 'Risk Profile',
+                    data: [72, 34, 58, 21, 45, 60],
+                    backgroundColor: 'rgba(108,92,231,0.2)',
+                    borderColor: '#6c5ce7',
+                    pointBackgroundColor: '#6c5ce7'
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: 'rgba(255,255,255,0.7)' } } }, scales: { r: { ticks: { color: 'rgba(255,255,255,0.5)', backdropColor: 'transparent' }, grid: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: 'rgba(255,255,255,0.7)' } } } }
+        });
+
+        new Chart(document.getElementById('doughnutChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['High Risk', 'Moderate', 'Low Risk'],
+                datasets: [{ data: [1, 1, 2], backgroundColor: ['#e74c3c', '#f39c12', '#2ecc71'], borderWidth: 0 }]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: 'rgba(255,255,255,0.7)' } } } }
+        });
+
+        new Chart(document.getElementById('lineChart'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    { label: 'Diabetes', data: [68, 70, 69, 72, 74, 71, 72], borderColor: '#e74c3c', tension: 0.4, fill: false },
+                    { label: 'Heart', data: [36, 35, 34, 33, 34, 35, 34], borderColor: '#2ecc71', tension: 0.4, fill: false }
+                ]
+            },
+            options: chartOpts
+        });
+    </script>
+</body>
+
+</html>

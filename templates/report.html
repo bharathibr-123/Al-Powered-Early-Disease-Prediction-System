@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Health Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .back {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        p.sub {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+        }
+
+        input {
+            padding: 11px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3498db;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="lang-bar" id="langBar">
+        <span class="lang-bar-label">🌐 Language:</span>
+        <!-- buttons are built by JS below -->
+        <button type="submit" data-t="predict">Predict Now</button>
+        <label data-t="glucose">Glucose Level</label>
+        <p data-t="advice_high">...</p>
+
+    </div>
+    <div class="card">
+        <a href="/dashboard" class="back">← Dashboard</a>
+        <h1>📄 Generate Health Report</h1>
+        <p class="sub">Fill in details to generate a professional PDF health report</p>
+        <form action="/generate_report" method="POST">
+            <div class="field">
+                <label>Patient Name</label>
+                <input type="text" name="name" placeholder="e.g. Arjun Kumar" required>
+            </div>
+            <div class="field">
+                <label>Age</label>
+                <input type="number" name="age" placeholder="e.g. 35" required>
+            </div>
+            <p style="font-size:13px;font-weight:700;color:#555;margin-bottom:10px;">Risk Scores (from your predictions)
+            </p>
+            <div class="risk-grid">
+                <div class="field">
+                    <label>Diabetes Risk %</label>
+                    <input type="number" name="diabetes_risk" placeholder="e.g. 72" min="0" max="100">
+                    <span class="hint">From diabetes predictor</span>
+                </div>
+                <div class="field">
+                    <label>Heart Risk %</label>
+                    <input type="number" name="heart_risk" placeholder="e.g. 34" min="0" max="100">
+                    <span class="hint">From heart predictor</span>
+                </div>
+                <div class="field">
+                    <label>Liver Risk %</label>
+                    <input type="number" name="liver_risk" placeholder="e.g. 58" min="0" max="100">
+                    <span class="hint">From liver predictor</span>
+                </div>
+                <div class="field">
+                    <label>Kidney Risk %</label>
+                    <input type="number" name="kidney_risk" placeholder="e.g. 21" min="0" max="100">
+                    <span class="hint">From kidney predictor</span>
+                </div>
+            </div>
+            <button type="submit">📥 Download PDF Report</button>
+        </form>
+    </div>
+</body>
+
+</html>

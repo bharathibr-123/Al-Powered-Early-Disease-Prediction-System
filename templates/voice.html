@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Voice Health Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 540px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .back {
+            color: #4ca1af;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 28px;
+        }
+
+        .mic-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            border: none;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(76, 161, 175, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .mic-btn.listening {
+            animation: micPulse 1s ease-in-out infinite;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        @keyframes micPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 20px rgba(231, 76, 60, 0);
+            }
+        }
+
+        .status {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 16px;
+            min-height: 22px;
+        }
+
+        .transcript-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 50px;
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 12px;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .response-box {
+            background: #e8f4f8;
+            border-left: 4px solid #4ca1af;
+            border-radius: 0 12px 12px 0;
+            padding: 14px;
+            font-size: 14px;
+            color: #2c3e50;
+            text-align: left;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .commands {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .cmd {
+            background: #f0f4f8;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+
+        .cmd strong {
+            display: block;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+
+        .cmd span {
+            color: #888;
+        }
+
+        .field-cmds {
+            margin-top: 16px;
+            background: #e8f8f0;
+            border-radius: 12px;
+            padding: 14px;
+            text-align: left;
+        }
+
+        .field-cmds h3 {
+            font-size: 13px;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .field-cmd {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .field-cmd strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <a href="/" class="back">← Back to home</a>
+        <h1>🎙️ Voice Health Assistant</h1>
+        <p class="subtitle">Navigate the app and fill forms entirely by voice</p>
+
+        <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎙️</button>
+        <div class="status" id="status">Tap the mic and speak a command</div>
+
+        <div class="transcript-box" id="transcript">Your speech will appear here...</div>
+        <div class="response-box" id="response"></div>
+
+        <div class="commands">
+            <div class="cmd"><strong>"Go to diabetes"</strong><span>Diabetes predictor</span></div>
+            <div class="cmd"><strong>"Go to heart"</strong><span>Heart predictor</span></div>
+            <div class="cmd"><strong>"Find hospital"</strong><span>Nearest hospitals</span></div>
+            <div class="cmd"><strong>"Emergency SOS"</strong><span>Emergency page</span></div>
+            <div class="cmd"><strong>"Check symptoms"</strong><span>Symptom checker</span></div>
+            <div class="cmd"><strong>"Open chatbot"</strong><span>AI health chat</span></div>
+            <div class="cmd"><strong>"Sign language"</strong><span>Sign detector</span></div>
+            <div class="cmd"><strong>"Go home"</strong><span>Home page</span></div>
+        </div>
+
+        <div class="field-cmds">
+            <h3>📝 Voice form filling commands</h3>
+            <div class="field-cmd"><strong>"Set age to 45"</strong> — fills age field on any form</div>
+            <div class="field-cmd"><strong>"Set glucose to 120"</strong> — fills glucose field</div>
+            <div class="field-cmd"><strong>"Set BMI to 27"</strong> — fills BMI field</div>
+            <div class="field-cmd"><strong>"Set blood pressure to 80"</strong> — fills BP field</div>
+            <div class="field-cmd"><strong>"Submit form"</strong> — submits the current form</div>
+            <div class="field-cmd"><strong>"What is BMI"</strong> — hear health info</div>
+        </div>
+    </div>
+
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition, isListening = false;
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US'; u.rate = 0.95;
+            window.speechSynthesis.speak(u);
+        }
+
+        function showResponse(text) {
+            const box = document.getElementById('response');
+            box.style.display = 'block';
+            box.textContent = '🤖 ' + text;
+            speak(text);
+        }
+
+        function setField(fieldName, value) {
+            const selectors = {
+                'age': ['input[name="age"]'],
+                'glucose': ['input[name="glucose"]'],
+                'bmi': ['input[name="bmi"]'],
+                'blood pressure': ['input[name="blood_pressure"]', 'input[name="trestbps"]', 'input[name="bp"]'],
+                'insulin': ['input[name="insulin"]'],
+                'cholesterol': ['input[name="chol"]'],
+                'pregnancies': ['input[name="pregnancies"]'],
+            };
+            const fields = selectors[fieldName];
+            if (!fields) return false;
+            let filled = false;
+            fields.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (el) { el.value = value; filled = true; }
+            });
+            return filled;
+        }
+
+        function processCommand(text) {
+            const setMatch = text.match(/set (\w[\w\s]*?) to ([\d.]+)/);
+            if (setMatch) {
+                const fieldName = setMatch[1].trim().toLowerCase();
+                const value = setMatch[2];
+                const filled = setField(fieldName, value);
+                if (filled) {
+                    showResponse(`Set ${fieldName} to ${value}.`);
+                } else {
+                    showResponse(`Could not find field: ${fieldName}. Try: age, glucose, BMI, blood pressure.`);
+                }
+                return;
+            }
+
+            if (text.includes('submit') || text.includes('predict') || text.includes('calculate')) {
+                const form = document.querySelector('form');
+                if (form) { speak('Submitting form now.'); setTimeout(() => form.submit(), 1500); }
+                else showResponse('No form found on this page. Navigate to a predictor first.');
+                return;
+            }
+
+            const nav = {
+                'diabetes': { reply: 'Opening diabetes predictor.', url: '/diabetes' },
+                'heart': { reply: 'Opening heart disease predictor.', url: '/heart' },
+                'liver': { reply: 'Opening liver disease predictor.', url: '/liver' },
+                'kidney': { reply: 'Opening kidney disease predictor.', url: '/kidney' },
+                'hospital': { reply: 'Finding nearest hospitals.', url: '/hospital' },
+                'emergency': { reply: 'Opening emergency SOS!', url: '/emergency' },
+                'symptom': { reply: 'Opening symptom checker.', url: '/symptoms' },
+                'chat': { reply: 'Opening AI chatbot.', url: '/chat' },
+                'sign': { reply: 'Opening sign language detector.', url: '/signlanguage' },
+                'voice': { reply: 'You are already on the voice page.', url: null },
+                'home': { reply: 'Going to home page.', url: '/' },
+            };
+
+            const info = {
+                'bmi': 'BMI is Body Mass Index. Normal is 18.5 to 24.9. Above 25 is overweight. Above 30 is obese.',
+                'glucose': 'Normal fasting glucose is 70 to 100. Pre-diabetes is 100 to 125. Above 126 indicates diabetes.',
+                'cholesterol': 'Total cholesterol should be below 200 milligrams per deciliter for good health.',
+                'blood pressure': 'Normal blood pressure is 120 over 80. Above 140 over 90 is high blood pressure.',
+                'diabetes': 'Diabetes is a condition where blood sugar is too high. Key risk factors are obesity, age, and family history.',
+                'heart disease': 'Heart disease risk factors include high cholesterol, smoking, high blood pressure, and physical inactivity.',
+            };
+
+            for (const key in info) {
+                if (text.includes('what is ' + key) || text.includes('tell me about ' + key) || text.includes('explain ' + key)) {
+                    showResponse(info[key]);
+                    return;
+                }
+            }
+
+            for (const key in nav) {
+                if (text.includes(key)) {
+                    const { reply, url } = nav[key];
+                    showResponse(reply);
+                    if (url) setTimeout(() => window.location.href = url, 2000);
+                    return;
+                }
+            }
+
+            showResponse("I didn't catch that. Try: go to diabetes, find hospital, set age to 45, or submit form.");
+        }
+
+        if (!SpeechRecognition) {
+            document.getElementById('status').textContent = '⚠️ Use Chrome browser for voice support.';
+        } else {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onresult = e => {
+                const text = e.results[0][0].transcript.toLowerCase();
+                document.getElementById('transcript').textContent = '🗣️ "' + text + '"';
+                processCommand(text);
+            };
+            recognition.onend = () => setListening(false);
+            recognition.onerror = () => { setListening(false); document.getElementById('status').textContent = 'Error — try again'; };
+        }
+
+        function toggleListening() {
+            if (isListening) { recognition.stop(); setListening(false); }
+            else { recognition.start(); setListening(true); }
+        }
+
+        function setListening(state) {
+            isListening = state;
+            const btn = document.getElementById('micBtn');
+            btn.classList.toggle('listening', state);
+            btn.textContent = state ? '⏹️' : '🎙️';
+            document.getElementById('status').textContent = state ? '🔴 Listening... speak now' : 'Tap the mic and speak a command';
+        }
+    </script>
+</body>
+
+</html>

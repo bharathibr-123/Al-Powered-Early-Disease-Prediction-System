@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Health Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 580px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .chat-header h2 {
+            color: white;
+            font-size: 18px;
+        }
+
+        .chat-header p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 12px;
+        }
+
+        .back-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 13px;
+            margin-left: auto;
+        }
+
+        .messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .bubble {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .bubble.bot {
+            background: #f0f4f8;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .bubble.user {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .suggestions {
+            padding: 0 20px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion {
+            padding: 6px 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .suggestion:hover {
+            background: #c8e6c9;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-area input:focus {
+            border-color: #11998e;
+        }
+
+        .send-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="avatar">🤖</div>
+            <div>
+                <h2>AI Health Assistant</h2>
+                <p>Ask me anything about your health</p>
+            </div>
+            <a href="/" class="back-link">← Home</a>
+        </div>
+
+        <div class="messages" id="messages">
+            <div class="message">
+                <span class="bot-icon">🤖</span>
+                <div class="bubble bot">
+                    Hello! I'm your AI Health Assistant. I can answer questions about diabetes, heart disease, symptoms,
+                    diet, exercise, and more. How can I help you today?
+                </div>
+            </div>
+        </div>
+
+        <div class="suggestions">
+            <button class="suggestion" onclick="sendSuggestion('What causes diabetes?')">What causes diabetes?</button>
+            <button class="suggestion" onclick="sendSuggestion('Heart disease symptoms')">Heart disease
+                symptoms</button>
+            <button class="suggestion" onclick="sendSuggestion('Diet tips for health')">Diet tips</button>
+            <button class="suggestion" onclick="sendSuggestion('What is a healthy BMI?')">Healthy BMI?</button>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Ask a health question..." onkeypress="handleKey(event)">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            addMessage(msg, 'user');
+            input.value = '';
+            fetch('/chatbot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    setTimeout(() => addMessage(data.reply, 'bot'), 500);
+                });
+        }
+
+        function sendSuggestion(text) {
+            document.getElementById('userInput').value = text;
+            sendMessage();
+        }
+
+        function addMessage(text, sender) {
+            const messages = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message ' + sender;
+            if (sender === 'bot') {
+                div.innerHTML = '<span class="bot-icon">🤖</span><div class="bubble bot">' + text + '</div>';
+            } else {
+                div.innerHTML = '<div class="bubble user">' + text + '</div>';
+            }
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+    </script>
+</body>
+
+</html>

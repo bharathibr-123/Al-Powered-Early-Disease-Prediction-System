@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Emergency SOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .sos-btn {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: #e53935;
+            border: 6px solid #ff5252;
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 0 auto 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: pulse 2s infinite;
+            transition: transform 0.1s;
+        }
+
+        .sos-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .sos-btn:active {
+            transform: scale(0.97);
+        }
+
+        .sos-btn span {
+            font-size: 13px;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 20px rgba(229, 57, 53, 0);
+            }
+        }
+
+        .alert-box {
+            display: none;
+            background: #e53935;
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .contacts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .contact-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+        }
+
+        .contact-card .num {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ff5252;
+        }
+
+        .contact-card .label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
+        .back-link {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🆘 Emergency SOS</h1>
+        <p class="subtitle">Press the button if you are experiencing a medical emergency</p>
+
+        <div class="alert-box" id="alertBox">
+            ⚠️ ALERT SENT! Emergency services have been notified.<br>
+            Stay calm. Help is on the way.<br>
+            <strong>Call 112 or 911 now if critical!</strong>
+        </div>
+
+        <button class="sos-btn" onclick="triggerSOS()">
+            SOS
+            <span>Press for help</span>
+        </button>
+
+        <div class="contacts">
+            <div class="contact-card">
+                <div class="num">112</div>
+                <div class="label">National Emergency</div>
+            </div>
+            <div class="contact-card">
+                <div class="num">108</div>
+                <div class="label">Ambulance</div>
+            </div>
+            <div class="contact-card">
+                <div class="num">102</div>
+                <div class="label">Medical Helpline</div>
+            </div>
+            <div class="contact-card">
+                <div class="num">1800-180-1104</div>
+                <div class="label">Health Helpline</div>
+            </div>
+        </div>
+
+        <a href="/" class="back-link">← Back to home</a>
+    </div>
+
+    <script>
+        function triggerSOS() {
+            const box = document.getElementById('alertBox');
+            box.style.display = 'block';
+            document.querySelector('.sos-btn').style.background = '#666';
+            document.querySelector('.sos-btn').innerHTML = 'SENT ✓<span>Alert dispatched</span>';
+            navigator.vibrate && navigator.vibrate([500, 200, 500]);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Heart Disease Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .back {
+            font-size: 13px;
+            color: #f5576c;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #c0392b;
+            margin-bottom: 6px;
+            font-size: 24px;
+        }
+
+        p.subtitle {
+            color: #888;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input,
+        select {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border 0.2s;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        button {
+            margin-top: 24px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f5576c, #f093fb);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <a href="/" class="back">← Back to home</a>
+        <h1>❤️ Heart Disease Risk Predictor</h1>
+        <p class="subtitle">Enter patient details below to get an AI-powered prediction</p>
+        <form action="/predict/heart" method="POST">
+            <div class="grid">
+                <div class="field">
+                    <label data-t="Age">Age</label>
+                    <input type="number" name="age" placeholder="e.g. 45" required>
+                    <span class="hint">Age in years</span>
+                </div>
+                <div class="field">
+                    <label data-t="Sex">Sex</label>
+                    <select name="sex" required>
+                        <option value="">Select</option>
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                    <span class="hint">Biological sex</span>
+                </div>
+                <div class="field">
+                    <label data-t="Chest Pain Type">Chest Pain Type</label>
+                    <select name="cp" required>
+                        <option value="">Select</option>
+                        <option value="0">Typical Angina</option>
+                        <option value="1">Atypical Angina</option>
+                        <option value="2">Non-anginal Pain</option>
+                        <option value="3">Asymptomatic</option>
+                    </select>
+                    <span class="hint">Type of chest pain</span>
+                </div>
+                <div class="field">
+                    <label data-t="Resting Blood Pressure">Resting Blood Pressure</label>
+                    <input type="number" name="trestbps" placeholder="e.g. 120" required>
+                    <span class="hint">mm Hg on admission</span>
+                </div>
+                <div class="field">
+                    <label data-t="Cholesterol">Cholesterol</label>
+                    <input type="number" name="chol" placeholder="e.g. 200" required>
+                    <span class="hint">Serum cholesterol (mg/dl)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Fasting Blood Sugar">Fasting Blood Sugar</label>
+                    <select name="fbs" required>
+                        <option value="">Select</option>
+                        <option value="1">Greater than 120 mg/dl</option>
+                        <option value="0">Less than 120 mg/dl</option>
+                    </select>
+                    <span class="hint">Fasting blood sugar level</span>
+                </div>
+                <div class="field">
+                    <label data-t="Resting ECG">Resting ECG</label>
+                    <select name="restecg" required>
+                        <option value="">Select</option>
+                        <option value="0">Normal</option>
+                        <option value="1">ST-T Abnormality</option>
+                        <option value="2">Left Ventricular Hypertrophy</option>
+                    </select>
+                    <span class="hint">ECG result at rest</span>
+                </div>
+                <div class="field">
+                    <label data-t="Max Heart Rate">Max Heart Rate</label>
+                    <input type="number" name="thalach" placeholder="e.g. 150" required>
+                    <span class="hint">Maximum heart rate achieved</span>
+                </div>
+                <div class="field">
+                    <label data-t="Exercise Induced Angina">Exercise Induced Angina</label>
+                    <select name="exang" required>
+                        <option value="">Select</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                    <span class="hint">Chest pain during exercise</span>
+                </div>
+                <div class="field">
+                    <label data-t="ST Depression">ST Depression</label>
+                    <input type="number" name="oldpeak" placeholder="e.g. 1.5" step="0.1" required>
+                    <span class="hint">Exercise vs rest (oldpeak)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Slope of ST Segment">Slope of ST Segment</label>
+                    <select name="slope" required>
+                        <option value="">Select</option>
+                        <option value="0">Upsloping</option>
+                        <option value="1">Flat</option>
+                        <option value="2">Downsloping</option>
+                    </select>
+                    <span class="hint">Peak exercise ST slope</span>
+                </div>
+                <div class="field">
+                    <label data-t="Major Vessels (0–3)">Major Vessels (0–3)</label>
+                    <input type="number" name="ca" placeholder="e.g. 0" min="0" max="3" required>
+                    <span class="hint">Colored by fluoroscopy</span>
+                </div>
+                <div class="field">
+                    <label data-t="Thal">Thal</label>
+                    <select name="thal" required>
+                        <option value="">Select</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Fixed Defect</option>
+                        <option value="3">Reversible Defect</option>
+                    </select>
+                    <span class="hint">Thalassemia type</span>
+                </div>
+            </div>
+            <button type="submit">Predict Heart Disease Risk</button>
+        </form>
+    </div>
+
+
+
+</body>
+
+
+</html>

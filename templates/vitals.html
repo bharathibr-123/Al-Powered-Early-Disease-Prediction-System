@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Live Vitals Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0a0e1a;
+            color: white;
+            padding: 20px;
+        }
+
+        .back {
+            color: rgba(255, 255, 255, .6);
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, .5);
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .vital-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, .08);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .vital-card.alert {
+            border-color: #e74c3c;
+            animation: alertPulse 1s infinite;
+        }
+
+        @keyframes alertPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+            }
+        }
+
+        .vital-icon {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .vital-name {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .5);
+            margin-bottom: 4px;
+        }
+
+        .vital-value {
+            font-size: 36px;
+            font-weight: 900;
+        }
+
+        .vital-unit {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .4);
+            margin-top: 2px;
+        }
+
+        .vital-status {
+            font-size: 11px;
+            margin-top: 6px;
+            font-weight: 700;
+        }
+
+        .normal {
+            color: #2ecc71;
+        }
+
+        .warning {
+            color: #f39c12;
+        }
+
+        .danger {
+            color: #e74c3c;
+        }
+
+        .pulse-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, .05);
+        }
+
+        .pulse-fill {
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .ecg-box {
+            background: #111827;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            margin-bottom: 20px;
+        }
+
+        .ecg-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
+        canvas {
+            width: 100%;
+            background: #0a0e1a;
+            border-radius: 8px;
+        }
+
+        .alert-box {
+            background: #1a0a0a;
+            border: 1px solid #e74c3c33;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-box h3 {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            font-size: 13px;
+        }
+
+        .alert-item:last-child {
+            border: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 11px 22px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .green {
+            background: #00b894;
+            color: white;
+        }
+
+        .red {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .blue {
+            background: #3498db;
+            color: white;
+        }
+
+        .orange {
+            background: #f39c12;
+            color: white;
+        }
+
+        @media(max-width:600px) {
+            .vitals-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/" class="back">← Home</a>
+    <h1>💓 Real-Time Vitals Monitor</h1>
+    <p class="subtitle">Continuous health monitoring with automatic alerts for abnormal conditions</p>
+
+    <div class="vitals-grid">
+        <div class="vital-card" id="hr-card">
+            <div class="vital-icon">❤️</div>
+            <div class="vital-name">Heart Rate</div>
+            <div class="vital-value" id="hr-val">72</div>
+            <div class="vital-unit">beats per minute</div>
+            <div class="vital-status normal" id="hr-status">Normal</div>
+            <div class="pulse-line">
+                <div class="pulse-fill" id="hr-bar" style="background:#e74c3c;width:60%"></div>
+            </div>
+        </div>
+        <div class="vital-card" id="spo2-card">
+            <div class="vital-icon">🫁</div>
+            <div class="vital-name">Oxygen Level (SpO2)</div>
+            <div class="vital-value" id="spo2-val">98</div>
+            <div class="vital-unit">% saturation</div>
+            <div class="vital-status normal" id="spo2-status">Normal</div>
+            <div class="pulse-line">
+                <div class="pulse-fill" id="spo2-bar" style="background:#3498db;width:98%"></div>
+            </div>
+        </div>
+        <div class="vital-card" id="temp-card">
+            <div class="vital-icon">🌡️</div>
+            <div class="vital-name">Body Temperature</div>
+            <div class="vital-value" id="temp-val">98.6</div>
+            <div class="vital-unit">°F</div>
+            <div class="vital-status normal" id="temp-status">Normal</div>
+            <div class="pulse-line">
+                <div class="pulse-fill" id="temp-bar" style="background:#f39c12;width:55%"></div>
+            </div>
+        </div>
+        <div class="vital-card" id="bp-card">
+            <div class="vital-icon">💉</div>
+            <div class="vital-name">Blood Pressure</div>
+            <div class="vital-value" id="bp-val">120/80</div>
+            <div class="vital-unit">mm Hg</div>
+            <div class="vital-status normal" id="bp-status">Normal</div>
+            <div class="pulse-line">
+                <div class="pulse-fill" id="bp-bar" style="background:#9b59b6;width:60%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ecg-box">
+        <div class="ecg-title">
+            <div class="live-dot"></div>
+            Live ECG Waveform — Heart Rate Monitor
+        </div>
+        <canvas id="ecg" height="80"></canvas>
+    </div>
+
+    <div class="alert-box" id="alertBox">
+        <h3>⚠️ ABNORMAL VITALS DETECTED — Immediate Attention Required</h3>
+        <div id="alertList"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn green" onclick="toggleMonitor()">⏸ Pause Monitor</button>
+        <button class="btn orange" onclick="simulateCrisis()">⚠️ Simulate Crisis</button>
+        <button class="btn blue" onclick="resetVitals()">🔄 Reset Normal</button>
+        <button class="btn red" onclick="window.location.href='/emergency'">🆘 Emergency SOS</button>
+    </div>
+
+    <script>
+        var running = true;
+        var ecgCanvas = document.getElementById('ecg');
+        var ecgCtx = ecgCanvas.getContext('2d');
+        var ecgData = [];
+        var ecgX = 0;
+        var crisis = false;
+
+        /* ── normal ranges ── */
+        var RANGES = {
+            hr: { min: 60, max: 100, warn: 110, danger: 130 },
+            spo2: { min: 95, max: 100, warn: 92, danger: 88 },
+            temp: { min: 97, max: 99.5, warn: 101, danger: 103 },
+            bpS: { min: 90, max: 120, warn: 140, danger: 160 },
+        };
+
+        var current = { hr: 72, spo2: 98, temp: 98.6, bpS: 120, bpD: 80 };
+
+        function rnd(base, range) {
+            return +(base + (Math.random() - 0.5) * range * 2).toFixed(1);
+        }
+
+        function getStatus(val, range) {
+            if (val >= range.danger || (range.min && val <= range.min - 5)) return 'danger';
+            if (val >= range.warn || (range.min && val <= range.min)) return 'warning';
+            return 'normal';
+        }
+
+        function updateCard(id, val, unit, range, display) {
+            var status = getStatus(val, range);
+            var card = document.getElementById(id + '-card');
+            var valEl = document.getElementById(id + '-val');
+            var statEl = document.getElementById(id + '-status');
+            var barEl = document.getElementById(id + '-bar');
+
+            valEl.textContent = display || val;
+            statEl.textContent = status === 'danger' ? '🚨 CRITICAL' : status === 'warning' ? '⚠️ Warning' : '✅ Normal';
+            statEl.className = 'vital-status ' + status;
+            card.className = 'vital-card' + (status === 'danger' ? ' alert' : '');
+
+            var pct = Math.min(Math.max((val - range.min) / (range.max - range.min + 20) * 100, 10), 100);
+            barEl.style.width = pct + '%';
+        }
+
+        function checkAlerts() {
+            var alerts = [];
+            if (getStatus(current.hr, RANGES.hr) !== 'normal') alerts.push('Heart rate: ' + current.hr + ' bpm — ' + (current.hr > RANGES.hr.warn ? 'Too High' : 'Too Low'));
+            if (getStatus(current.spo2, RANGES.spo2) !== 'normal') alerts.push('Oxygen: ' + current.spo2 + '% — Below safe level');
+            if (getStatus(current.temp, RANGES.temp) !== 'normal') alerts.push('Temperature: ' + current.temp + '°F — Fever detected');
+            if (getStatus(current.bpS, RANGES.bpS) !== 'normal') alerts.push('Blood pressure: ' + current.bpS + '/' + current.bpD + ' — Hypertension');
+
+            var box = document.getElementById('alertBox');
+            if (alerts.length > 0) {
+                box.style.display = 'block';
+                document.getElementById('alertList').innerHTML =
+                    alerts.map(a => '<div class="alert-item">⚠️ ' + a + '</div>').join('');
+                if (typeof window.speechSynthesis !== 'undefined' && alerts.length > 0) {
+                    /* speak alert once every 10 seconds */
+                    if (!window._lastAlert || Date.now() - window._lastAlert > 10000) {
+                        window._lastAlert = Date.now();
+                        var u = new SpeechSynthesisUtterance('Warning! Abnormal vital detected. ' + alerts[0]);
+                        u.rate = 0.95; window.speechSynthesis.speak(u);
+                    }
+                }
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        function update() {
+            if (!running) return;
+            if (crisis) {
+                current.hr = rnd(140, 10);
+                current.spo2 = rnd(85, 3);
+                current.temp = rnd(103, 1);
+                current.bpS = rnd(165, 8);
+                current.bpD = rnd(105, 5);
+            } else {
+                current.hr = rnd(74, 4);
+                current.spo2 = rnd(98, 1);
+                current.temp = rnd(98.6, 0.3);
+                current.bpS = rnd(118, 6);
+                current.bpD = rnd(78, 4);
+            }
+            updateCard('hr', current.hr, 'bpm', RANGES.hr, current.hr);
+            updateCard('spo2', current.spo2, '%', RANGES.spo2, current.spo2);
+            updateCard('temp', current.temp, '°F', RANGES.temp, current.temp);
+            updateCard('bp', current.bpS, 'mmHg', RANGES.bpS, current.bpS + '/' + current.bpD);
+            checkAlerts();
+        }
+
+        /* ── ECG waveform ── */
+        function drawECG() {
+            var W = ecgCanvas.width = ecgCanvas.offsetWidth;
+            var H = ecgCanvas.height = 80;
+            ecgCtx.clearRect(0, 0, W, H);
+            ecgCtx.strokeStyle = crisis ? '#e74c3c' : '#00d2a8';
+            ecgCtx.lineWidth = 1.5;
+            ecgCtx.beginPath();
+
+            /* generate ECG-like shape */
+            var speed = crisis ? 3 : 2;
+            ecgX = (ecgX + speed) % W;
+
+            var y = H / 2;
+            var phase = (ecgX / W * Math.PI * 20);
+            /* P wave + QRS + T wave approximation */
+            var ecgY = y
+                - Math.sin(phase) * 4
+                - (Math.abs(Math.sin(phase * 3)) > 0.95 ? 28 : 0)
+                + (Math.abs(Math.sin(phase * 3 + 0.3)) > 0.97 ? 10 : 0);
+
+            for (var x = 0; x < W; x++) {
+                var p = (x / W * Math.PI * 20);
+                var ey = H / 2
+                    - Math.sin(p) * 4
+                    - (Math.abs(Math.sin(p * 3)) > 0.95 ? 28 : 0)
+                    + (Math.abs(Math.sin(p * 3 + 0.3)) > 0.97 ? 10 : 0);
+                if (x === 0) ecgCtx.moveTo(x, ey);
+                else ecgCtx.lineTo(x, ey);
+            }
+            ecgCtx.stroke();
+
+            /* moving cursor */
+            ecgCtx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ecgCtx.lineWidth = 1;
+            ecgCtx.beginPath();
+            ecgCtx.moveTo(ecgX, 0); ecgCtx.lineTo(ecgX, H);
+            ecgCtx.stroke();
+        }
+
+        function toggleMonitor() {
+            running = !running;
+            event.target.textContent = running ? '⏸ Pause Monitor' : '▶ Resume Monitor';
+        }
+        function simulateCrisis() {
+            crisis = true;
+            setTimeout(function () { crisis = false; }, 12000);
+        }
+        function resetVitals() {
+            crisis = false;
+            current = { hr: 72, spo2: 98, temp: 98.6, bpS: 120, bpD: 80 };
+            update();
+        }
+
+        setInterval(update, 1200);
+        setInterval(drawECG, 50);
+        update();
+    </script>
+</body>
+
+</html>

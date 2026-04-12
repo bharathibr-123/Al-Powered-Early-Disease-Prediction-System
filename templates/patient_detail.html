@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Patient Detail — HealthAI</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#060D1F;color:white;min-height:100vh;}
+nav{background:#0D1B35;padding:14px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(255,255,255,.08);}
+nav .logo{font-size:18px;font-weight:900;color:#00D2A8;}
+nav a{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;}
+.container{max-width:1100px;margin:0 auto;padding:24px 20px;}
+
+/* patient header */
+.p-header{background:#0D1B35;border-radius:16px;padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;border:1px solid rgba(255,255,255,.08);}
+.big-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#00D2A8,#1A8FE3);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#060D1F;flex-shrink:0;}
+.p-info h2{font-size:22px;font-weight:800;}
+.p-info p{font-size:13px;color:rgba(255,255,255,.45);margin-top:4px;}
+.p-stats{margin-left:auto;display:flex;gap:16px;}
+.pstat{text-align:center;}
+.pstat-val{font-size:22px;font-weight:900;color:#00D2A8;}
+.pstat-label{font-size:10px;color:rgba(255,255,255,.4);}
+
+/* grid */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.card{background:#0D1B35;border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,.08);}
+.card-title{font-size:14px;font-weight:700;color:#00D2A8;margin-bottom:14px;}
+
+/* improvement */
+.improve-row{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:10px;margin-bottom:8px;}
+.disease-tag{font-size:12px;font-weight:700;color:white;width:100px;flex-shrink:0;}
+.trend-arrow{font-size:20px;flex-shrink:0;}
+.trend-text{font-size:12px;}
+.improved{color:#2ECC71;}
+.worsened{color:#E74C3C;}
+.same{color:#F39C12;}
+
+/* history table */
+.htable{width:100%;border-collapse:collapse;font-size:12px;}
+.htable th{text-align:left;padding:8px 10px;color:rgba(255,255,255,.4);border-bottom:1px solid rgba(255,255,255,.08);font-weight:600;}
+.htable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.05);}
+.htable tr:hover td{background:rgba(255,255,255,.03);}
+.badge-high{padding:2px 8px;border-radius:10px;background:rgba(231,76,60,.2);color:#E74C3C;font-weight:700;font-size:10px;}
+.badge-low{padding:2px 8px;border-radius:10px;background:rgba(46,204,113,.2);color:#2ECC71;font-weight:700;font-size:10px;}
+
+/* quick predict */
+.qp-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.qp-btn{padding:10px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);border-radius:10px;color:white;font-size:12px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;display:block;transition:all .2s;}
+.qp-btn:hover{border-color:#00D2A8;color:#00D2A8;}
+
+@media(max-width:700px){.main-grid{grid-template-columns:1fr;}.p-stats{display:none;}}
+</style>
+</head>
+<body>
+<nav>
+  <span class="logo">HealthAI</span>
+  <a href="/">← Home</a>
+  <a href="/patients">Patient List</a>
+  <span style="color:rgba(255,255,255,.3);font-size:13px;">/ {{ patient.name }}</span>
+</nav>
+
+<div class="container">
+
+  <!-- Patient header -->
+  <div class="p-header">
+    <div class="big-avatar">{{ patient.name[0].upper() }}</div>
+    <div class="p-info">
+      <h2>{{ patient.name }}</h2>
+      <p>Age {{ patient.age }} · {{ patient.gender or 'N/A' }} · Registered {{ patient.created_at[:10] }}</p>
+      {% if patient.phone %}<p style="margin-top:4px;">📞 {{ patient.phone }}</p>{% endif %}
+      {% if patient.email %}<p>✉️ {{ patient.email }}</p>{% endif %}
+    </div>
+    <div class="p-stats">
+      <div class="pstat"><div class="pstat-val">{{ history|length }}</div><div class="pstat-label">Total Predictions</div></div>
+      <div class="pstat"><div class="pstat-val" style="color:{% if high_count > 0 %}#E74C3C{% else %}#2ECC71{% endif %}">{{ high_count }}</div><div class="pstat-label">High Risk</div></div>
+      <div class="pstat"><div class="pstat-val" style="color:#2ECC71">{{ low_count }}</div><div class="pstat-label">Low Risk</div></div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- Progress comparison -->
+    <div class="card">
+      <div class="card-title">📈 Health Progress Comparison</div>
+      {% if progress %}
+        {% for disease, data in progress.items() %}
+        <div class="improve-row">
+          <span class="disease-tag">{{ disease }}</span>
+          {% if data.trend == 'improved' %}
+            <span class="trend-arrow">✅</span>
+            <span class="trend-text improved">Improved — {{ data.first }}% → {{ data.latest }}% (↓{{ data.diff }}%)</span>
+          {% elif data.trend == 'worsened' %}
+            <span class="trend-arrow">⚠️</span>
+            <span class="trend-text worsened">Worsened — {{ data.first }}% → {{ data.latest }}% (↑{{ data.diff }}%)</span>
+          {% else %}
+            <span class="trend-arrow">➡️</span>
+            <span class="trend-text same">Stable — {{ data.latest }}%</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="font-size:12px;color:rgba(255,255,255,.35);">No comparison available yet. Need at least 2 predictions for the same disease to show progress.</p>
+      {% endif %}
+    </div>
+
+    <!-- Risk trend chart -->
+    <div class="card">
+      <div class="card-title">📊 Risk Score Trend</div>
+      <canvas id="trendChart" height="160"></canvas>
+    </div>
+
+    <!-- Quick predict links -->
+    <div class="card">
+      <div class="card-title">🩺 Run New Prediction for {{ patient.name }}</div>
+      <div class="qp-btns">
+        <a href="/diabetes?patient_id={{ patient.id }}" class="qp-btn">🩸 Diabetes Check</a>
+        <a href="/heart?patient_id={{ patient.id }}" class="qp-btn">❤️ Heart Check</a>
+        <a href="/liver?patient_id={{ patient.id }}" class="qp-btn">🫀 Liver Check</a>
+        <a href="/kidney?patient_id={{ patient.id }}" class="qp-btn">🫘 Kidney Check</a>
+      </div>
+      <p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:10px;">After prediction, save the result to this patient's history to track progress over time.</p>
+    </div>
+
+    <!-- Summary card -->
+    <div class="card">
+      <div class="card-title">💡 AI Health Summary</div>
+      {% if history %}
+        {% set latest = history[0] %}
+        <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.7;">
+          <p>Latest prediction: <strong style="color:white">{{ latest.disease }}</strong> on {{ latest.predicted_at[:10] }}</p>
+          <p style="margin-top:6px;">Risk level: <strong style="color:{% if latest.risk_level == 'High Risk' %}#E74C3C{% else %}#2ECC71{% endif %}">{{ latest.risk_level }}</strong> ({{ latest.probability }}%)</p>
+          {% if latest.risk_level == 'High Risk' %}
+          <p style="margin-top:8px;color:#F39C12;">⚠️ This patient has high risk. Recommend immediate medical consultation.</p>
+          {% else %}
+          <p style="margin-top:8px;color:#2ECC71;">✅ Last reading shows low risk. Continue monitoring regularly.</p>
+          {% endif %}
+          {% if progress %}
+          {% for disease, data in progress.items() %}
+            {% if data.trend == 'improved' %}
+            <p style="margin-top:6px;color:#2ECC71;">📈 {{ disease }} risk has improved by {{ data.diff }}% since first check.</p>
+            {% elif data.trend == 'worsened' %}
+            <p style="margin-top:6px;color:#E74C3C;">📉 {{ disease }} risk has increased by {{ data.diff }}% — needs attention.</p>
+            {% endif %}
+          {% endfor %}
+          {% endif %}
+        </div>
+      {% else %}
+        <p style="font-size:12px;color:rgba(255,255,255,.35);">No predictions recorded yet. Run a prediction above to start tracking.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Full history table -->
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">📋 Complete Prediction History</div>
+    {% if history %}
+    <table class="htable">
+      <tr>
+        <th>Date</th>
+        <th>Disease</th>
+        <th>Risk Level</th>
+        <th>Confidence</th>
+        <th>Top Factors</th>
+      </tr>
+      {% for h in history %}
+      <tr>
+        <td style="color:rgba(255,255,255,.5)">{{ h.predicted_at[:16] }}</td>
+        <td>{{ h.disease }}</td>
+        <td><span class="badge-{{ 'high' if h.risk_level == 'High Risk' else 'low' }}">{{ h.risk_level }}</span></td>
+        <td style="color:{% if h.risk_level == 'High Risk' %}#E74C3C{% else %}#2ECC71{% endif %}">{{ h.probability }}%</td>
+        <td style="color:rgba(255,255,255,.5);font-size:11px">{{ h.top_factors or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p style="font-size:12px;color:rgba(255,255,255,.35);">No predictions recorded yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+var chartData = {{ chart_data | tojson }};
+if (chartData && chartData.labels && chartData.labels.length > 0) {
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: chartData.labels,
+      datasets: chartData.datasets.map(function(ds) {
+        return {
+          label: ds.label,
+          data: ds.data,
+          borderColor: ds.color,
+          backgroundColor: ds.color + '22',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          pointBackgroundColor: ds.color,
+        };
+      })
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color:'rgba(255,255,255,.65)', font:{size:10} } } },
+      scales: {
+        x: { ticks:{color:'rgba(255,255,255,.45)',font:{size:9}}, grid:{color:'rgba(255,255,255,.05)'} },
+        y: { min:0, max:100, ticks:{color:'rgba(255,255,255,.45)',font:{size:9}}, grid:{color:'rgba(255,255,255,.05)'} }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>

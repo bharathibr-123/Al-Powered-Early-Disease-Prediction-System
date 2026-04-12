@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kidney Disease Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #834d9b 0%, #d04ed6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 36px;
+            width: 100%;
+            max-width: 620px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .back {
+            font-size: 13px;
+            color: #834d9b;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #4a148c;
+            margin-bottom: 6px;
+            font-size: 24px;
+        }
+
+        p.subtitle {
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #834d9b;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 16px 0 8px;
+            border-bottom: 1px solid #f0e6f6;
+            padding-bottom: 4px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input,
+        select {
+            padding: 9px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 13px;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #834d9b;
+        }
+
+        .hint {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #834d9b, #d04ed6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <a href="/" class="back">← Back to home</a>
+        <h1>🫘 Kidney Disease Risk Predictor</h1>
+        <p class="subtitle">Enter patient lab values to predict chronic kidney disease risk</p>
+        <form action="/predict/kidney" method="POST">
+
+            <div class="section-label">Basic Info</div>
+            <div class="grid">
+                <div class="field">
+                    <label data-t="Age">Age</label>
+                    <input type="number" name="age" placeholder="e.g. 48" required>
+                    <span class="hint">Age in years</span>
+                </div>
+                <div class="field">
+                    <label data-t="Blood Pressure">Blood Pressure</label>
+                    <input type="number" name="bp" placeholder="e.g. 80" required>
+                    <span class="hint">mm/Hg — normal: 70–80</span>
+                </div>
+            </div>
+
+            <div class="section-label">Urine Test Results</div>
+            <div class="grid">
+                <div class="field">
+                    <label data-t="Specific Gravity">Specific Gravity</label>
+                    <select name="sg" required>
+                        <option value="">Select</option>
+                        <option value="1.005">1.005</option>
+                        <option value="1.010">1.010</option>
+                        <option value="1.015">1.015</option>
+                        <option value="1.020">1.020</option>
+                        <option value="1.025">1.025</option>
+                    </select>
+                    <span class="hint">Urine specific gravity</span>
+                </div>
+                <div class="field">
+                    <label data-t="Albumin">Albumin</label>
+                    <select name="al" required>
+                        <option value="">Select</option>
+                        <option value="0">0 — Normal</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5 — High</option>
+                    </select>
+                    <span class="hint">Albumin level (0–5)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Sugar">Sugar</label>
+                    <select name="su" required>
+                        <option value="">Select</option>
+                        <option value="0">0 — Normal</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5 — High</option>
+                    </select>
+                    <span class="hint">Sugar level (0–5)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Red Blood Cells">Red Blood Cells</label>
+                    <select name="rbc" required>
+                        <option value="">Select</option>
+                        <option value="0">Normal</option>
+                        <option value="1">Abnormal</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Pus Cell">Pus Cell</label>
+                    <select name="pc" required>
+                        <option value="">Select</option>
+                        <option value="0">Normal</option>
+                        <option value="1">Abnormal</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Pus Cell Clumps">Pus Cell Clumps</label>
+                    <select name="pcc" required>
+                        <option value="">Select</option>
+                        <option value="0">Not present</option>
+                        <option value="1">Present</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Bacteria">Bacteria</label>
+                    <select name="ba" required>
+                        <option value="">Select</option>
+                        <option value="0">Not present</option>
+                        <option value="1">Present</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-label">Blood Test Results</div>
+            <div class="grid">
+                <div class="field">
+                    <label data-t="Blood Glucose Random">Blood Glucose Random</label>
+                    <input type="number" name="bgr" placeholder="e.g. 120" required>
+                    <span class="hint">mg/dL — normal: 70–140</span>
+                </div>
+                <div class="field">
+                    <label data-t="Blood Urea">Blood Urea</label>
+                    <input type="number" name="bu" placeholder="e.g. 30" required>
+                    <span class="hint">mg/dL — normal: 7–25</span>
+                </div>
+                <div class="field">
+                    <label data-t="Serum Creatinine">Serum Creatinine</label>
+                    <input type="number" name="sc" placeholder="e.g. 1.0" step="0.1" required>
+                    <span class="hint">mg/dL — normal: 0.6–1.2</span>
+                </div>
+                <div class="field">
+                    <label data-t="Sodium">Sodium</label>
+                    <input type="number" name="sod" placeholder="e.g. 140" required>
+                    <span class="hint">mEq/L — normal: 135–145</span>
+                </div>
+                <div class="field">
+                    <label data-t="Potassium">Potassium</label>
+                    <input type="number" name="pot" placeholder="e.g. 4.0" step="0.1" required>
+                    <span class="hint">mEq/L — normal: 3.5–5.0</span>
+                </div>
+                <div class="field">
+                    <label data-t="Haemoglobin">Haemoglobin</label>
+                    <input type="number" name="hemo" placeholder="e.g. 13.5" step="0.1" required>
+                    <span class="hint">g/dL — normal: 12–17</span>
+                </div>
+                <div class="field">
+                    <label data-t="Packed Cell Volume">Packed Cell Volume</label>
+                    <input type="number" name="pcv" placeholder="e.g. 40" required>
+                    <span class="hint">% — normal: 36–50</span>
+                </div>
+                <div class="field">
+                    <label data-t="WBC Count">WBC Count</label>
+                    <input type="number" name="wc" placeholder="e.g. 7000" required>
+                    <span class="hint">cells/cumm — normal: 4000–11000</span>
+                </div>
+                <div class="field">
+                    <label data-t="RBC Count">RBC Count</label>
+                    <input type="number" name="rc" placeholder="e.g. 4.5" step="0.1" required>
+                    <span class="hint">millions/cmm — normal: 4.5–5.5</span>
+                </div>
+            </div>
+
+            <div class="section-label">Medical History</div>
+            <div class="grid">
+                <div class="field">
+                    <label data-t="Hypertension">Hypertension</label>
+                    <select name="htn" required>
+                        <option value="">Select</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Diabetes Mellitus">Diabetes Mellitus</label>
+                    <select name="dm" required>
+                        <option value="">Select</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Coronary Artery Disease">Coronary Artery Disease</label>
+                    <select name="cad" required>
+                        <option value="">Select</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Appetite">Appetite</label>
+                    <select name="appet" required>
+                        <option value="">Select</option>
+                        <option value="1">Good</option>
+                        <option value="0">Poor</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Pedal Edema">Pedal Edema</label>
+                    <select name="pe" required>
+                        <option value="">Select</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label data-t="Anemia">Anemia</label>
+                    <select name="ane" required>
+                        <option value="">Select</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit">Predict Kidney Disease Risk</button>
+        </form>
+    </div>
+
+
+
+
+</body>
+
+</html>

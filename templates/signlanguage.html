@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>HealthAI — Full ASL Sign Language</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #060D1F, #0D1B35);
+      min-height: 100vh;
+      color: white;
+      padding: 14px;
+    }
+
+    a.back {
+      color: rgba(255, 255, 255, .55);
+      text-decoration: none;
+      font-size: 13px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .sub {
+      text-align: center;
+      color: rgba(255, 255, 255, .45);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* video */
+    .vwrap {
+      position: relative;
+      background: #000;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, .12);
+    }
+
+    #vid {
+      width: 100%;
+      display: block;
+      transform: scaleX(-1);
+    }
+
+    #cvs {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: scaleX(-1);
+      pointer-events: none;
+    }
+
+    .cbadge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, .75);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+    }
+
+    /* detected letter */
+    .det-box {
+      background: rgba(255, 255, 255, .08);
+      border: 2px solid rgba(255, 255, 255, .14);
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .big-l {
+      font-size: 72px;
+      color: white;
+      font-weight: 900;
+      line-height: 1;
+      min-height: 80px;
+    }
+
+    .sign-nm {
+      font-size: 15px;
+      color: #00D2A8;
+      font-weight: 700;
+      margin: 4px 0;
+    }
+
+    .sign-ds {
+      font-size: 11px;
+      color: rgba(255, 255, 255, .5);
+      margin-bottom: 8px;
+    }
+
+    .hbar {
+      height: 8px;
+      background: rgba(255, 255, 255, .1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .hfill {
+      height: 100%;
+      background: #00D2A8;
+      border-radius: 4px;
+      width: 0%;
+      transition: width .12s;
+    }
+
+    .htxt {
+      font-size: 10px;
+      color: rgba(255, 255, 255, .4);
+    }
+
+    /* word builder */
+    .wb {
+      background: rgba(0, 0, 0, .3);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .wb-t {
+      color: rgba(255, 255, 255, .65);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .wb-d {
+      font-size: 26px;
+      color: #00D2A8;
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: rgba(0, 0, 0, .3);
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-height: 46px;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+
+    .wbtns {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .wbtn {
+      padding: 8px 13px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .g {
+      background: #00b894;
+      color: white;
+    }
+
+    .gr {
+      background: #636e72;
+      color: white;
+    }
+
+    .r {
+      background: #e17055;
+      color: white;
+    }
+
+    .p {
+      background: #6c5ce7;
+      color: white;
+    }
+
+    .o {
+      background: #f39c12;
+      color: white;
+    }
+
+    /* controls */
+    .ctrls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bs {
+      background: #00b894;
+      color: white;
+    }
+
+    .br {
+      background: #e17055;
+      color: white;
+    }
+
+    /* right side */
+    .abox {
+      background: rgba(255, 255, 255, .07);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .sec-t {
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .agrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .acard {
+      background: rgba(255, 255, 255, .07);
+      border-radius: 10px;
+      padding: 9px 7px;
+      border: 2px solid transparent;
+      transition: all .2s;
+      text-align: center;
+    }
+
+    .acard.on {
+      border-color: #00D2A8;
+      background: rgba(0, 210, 168, .18);
+    }
+
+    .acard.go {
+      border-color: #E74C3C;
+      background: rgba(231, 76, 60, .25);
+    }
+
+    .ac-em {
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .ac-nm {
+      font-size: 10px;
+      color: white;
+      font-weight: 700;
+    }
+
+    .ac-ds {
+      font-size: 9px;
+      color: rgba(255, 255, 255, .45);
+      margin-top: 1px;
+    }
+
+    .ac-lk {
+      font-size: 9px;
+      color: #00D2A8;
+      margin-top: 2px;
+      font-weight: 700;
+    }
+
+    /* full alphabet */
+    .alpha-box {
+      background: rgba(255, 255, 255, .06);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .lgrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .lcell {
+      background: rgba(255, 255, 255, .08);
+      border-radius: 8px;
+      padding: 7px 4px;
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, .6);
+      cursor: default;
+      border: 1.5px solid transparent;
+      transition: all .2s;
+    }
+
+    .lcell.on {
+      background: rgba(0, 210, 168, .3);
+      color: #00D2A8;
+      font-weight: 700;
+      border-color: #00D2A8;
+    }
+
+    .lcell.action-l {
+      border-color: rgba(231, 76, 60, .5);
+      color: #E74C3C;
+    }
+
+    .lc-ltr {
+      font-size: 15px;
+      font-weight: 800;
+      display: block;
+    }
+
+    .lc-hint {
+      font-size: 8px;
+      display: block;
+      margin-top: 1px;
+      opacity: .6;
+    }
+
+    /* how to */
+    .how {
+      background: rgba(255, 255, 255, .06);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .hrow {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, .65);
+      font-size: 11px;
+    }
+
+    .step {
+      background: #00D2A8;
+      color: #060D1F;
+      border-radius: 6px;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* spoken words history */
+    .hist-box {
+      background: rgba(255, 255, 255, .06);
+      border-radius: 12px;
+      padding: 12px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .hist-item {
+      font-size: 11px;
+      color: rgba(255, 255, 255, .6);
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .05);
+    }
+
+    .toast {
+      display: none;
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      padding: 11px 24px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 9999;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .5);
+    }
+
+    @media(max-width:580px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lgrid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toast" id="toast"></div>
+  <a href="/" class="back">← Back to home</a>
+  <h1>🤟 Full ASL Sign Language Health System</h1>
+  <p class="sub">Complete A–Z detection · Word builder · Text-to-speech · Health emergency actions — all powered by
+    MediaPipe AI</p>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div class="col">
+      <div class="vwrap">
+        <video id="vid" autoplay playsinline muted></video>
+        <canvas id="cvs"></canvas>
+        <div class="cbadge" id="badge">Camera off</div>
+      </div>
+
+      <div class="det-box">
+        <div class="big-l" id="bigL">?</div>
+        <div class="sign-nm" id="snm">No sign detected</div>
+        <div class="sign-ds" id="sds">Start camera and show a hand sign</div>
+        <div class="hbar">
+          <div class="hfill" id="hfill"></div>
+        </div>
+        <div class="htxt" id="htxt">Hold any sign 2 seconds → triggers action</div>
+      </div>
+
+      <div class="wb">
+        <div class="wb-t">📝 Word Builder — spell words using ASL letters</div>
+        <div class="wb-d" id="wdisp">_</div>
+        <div class="wbtns">
+          <button class="wbtn g" onclick="addLetter()">＋ Add</button>
+          <button class="wbtn gr" onclick="delLetter()">⌫ Delete</button>
+          <button class="wbtn r" onclick="clearWord()">✕ Clear</button>
+          <button class="wbtn p" onclick="speakWord()">🔊 Speak</button>
+          <button class="wbtn o" onclick="addSpace()">␣ Space</button>
+          <button class="wbtn g" onclick="speakAndSave()">💾 Save</button>
+        </div>
+      </div>
+
+      <div class="ctrls">
+        <button class="btn bs" onclick="startCam()">▶ Start Camera</button>
+        <button class="btn br" onclick="stopCam()">⏹ Stop</button>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col">
+      <div class="abox">
+        <div class="sec-t">🚨 Emergency Signs (hold 2 sec = auto-navigate)</div>
+        <div class="agrid">
+          <div class="acard" id="card-A">
+            <div class="ac-em">✊</div>
+            <div class="ac-nm">A — Fist</div>
+            <div class="ac-ds">Thumb tucked closed fist</div>
+            <div class="ac-lk">→ Emergency SOS</div>
+          </div>
+          <div class="acard" id="card-B">
+            <div class="ac-em">🖐️</div>
+            <div class="ac-nm">B — Flat</div>
+            <div class="ac-ds">All 4 fingers straight up</div>
+            <div class="ac-lk">→ Find Hospital</div>
+          </div>
+          <div class="acard" id="card-C">
+            <div class="ac-em">🤌</div>
+            <div class="ac-nm">C — Curve</div>
+            <div class="ac-ds">Hand curved like letter C</div>
+            <div class="ac-lk">→ AI Chatbot</div>
+          </div>
+          <div class="acard" id="card-D">
+            <div class="ac-em">☝️</div>
+            <div class="ac-nm">D — Index up</div>
+            <div class="ac-ds">Only index finger up</div>
+            <div class="ac-lk">→ Check Symptoms</div>
+          </div>
+          <div class="acard" id="card-L">
+            <div class="ac-em">🤙</div>
+            <div class="ac-nm">L — L Shape</div>
+            <div class="ac-ds">Thumb + index only</div>
+            <div class="ac-lk">→ Call Ambulance</div>
+          </div>
+          <div class="acard" id="card-V">
+            <div class="ac-em">✌️</div>
+            <div class="ac-nm">V — Peace</div>
+            <div class="ac-ds">Index + middle spread</div>
+            <div class="ac-lk">→ Voice Assistant</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alpha-box">
+        <div class="sec-t">Complete ASL A–Z Alphabet Tracker</div>
+        <div class="lgrid" id="lgrid"></div>
+      </div>
+
+      <div class="how">
+        <div class="sec-t">How to use</div>
+        <div class="hrow"><span class="step">1</span>Click Start Camera and allow browser permission</div>
+        <div class="hrow"><span class="step">2</span>Show a hand sign clearly — the AI reads your finger positions</div>
+        <div class="hrow"><span class="step">3</span>Hold 2 seconds → emergency signs auto-navigate to health pages
+        </div>
+        <div class="hrow"><span class="step">4</span>Other letters → click Add to build a word, then Speak to hear it
+        </div>
+        <div class="hrow"><span class="step">5</span>Red-marked letters are emergency action signs</div>
+      </div>
+
+      <div class="hist-box">
+        <div class="sec-t" style="font-size:12px;margin-bottom:6px;">📖 Spoken Word History</div>
+        <div id="histList">
+          <div class="hist-item" style="color:rgba(255,255,255,.3)">Words you speak will appear here...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1640029074/camera_utils.js"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1620248257/drawing_utils.js"
+    crossorigin="anonymous"></script>
+  <script>
+    /* ── globals ─────────────────────────── */
+    var vid = document.getElementById('vid');
+    var cvs = document.getElementById('cvs');
+    var ctx = cvs.getContext('2d');
+    var curLetter = '?';
+    var curWord = '';
+    var holdCount = 0;
+    var holdTarget = 14;
+    var lastLetter = '';
+    var fired = false;
+    var stream = null;
+    var mpCam = null;
+    var wordHistory = [];
+
+    /* ASL actions */
+    var ACTIONS = {
+      'A': { label: 'Emergency SOS!', url: '/emergency', color: '#e74c3c' },
+      'B': { label: 'Find nearest hospital', url: '/hospital', color: '#3498db' },
+      'C': { label: 'Open AI chatbot', url: '/chat', color: '#9b59b6' },
+      'D': { label: 'Check your symptoms', url: '/symptoms', color: '#f39c12' },
+      'L': { label: 'Call ambulance now', url: '/emergency', color: '#e74c3c' },
+      'V': { label: 'Open voice assistant', url: '/voice', color: '#1abc9c' },
+    };
+
+    /* all ASL letters with how-to hints */
+    var ALL_LETTERS = {
+      'A': 'fist thumb side', 'B': '4 fingers up flat', 'C': 'curved C shape',
+      'D': 'index up rest curl', 'E': 'all curl fingertips', 'F': 'index+thumb pinch',
+      'G': 'index sideways+thumb', 'H': 'index+middle sideways', 'I': 'pinky only',
+      'J': 'pinky + draw J', 'K': 'index+middle+thumb', 'L': 'L shape thumb+index',
+      'M': '3 fingers over thumb', 'N': '2 fingers over thumb', 'O': 'all fingers form O',
+      'P': 'index+thumb down', 'Q': 'index+thumb down point', 'R': 'index+middle cross',
+      'S': 'fist thumb over', 'T': 'thumb between index+middle', 'U': 'index+middle up together',
+      'V': 'index+middle spread', 'W': '3 fingers up spread', 'X': 'index hook curl',
+      'Y': 'thumb+pinky out', 'Z': 'index draws Z',
+    };
+
+    /* build letter grid */
+    (function () {
+      var g = document.getElementById('lgrid');
+      Object.keys(ALL_LETTERS).forEach(function (l) {
+        var d = document.createElement('div');
+        d.className = 'lcell' + (ACTIONS[l] ? ' action-l' : '');
+        d.id = 'lc-' + l;
+        d.title = ALL_LETTERS[l];
+        d.innerHTML = '<span class="lc-ltr">' + l + '</span><span class="lc-hint">' + ALL_LETTERS[l].split(' ').slice(0, 2).join(' ') + '</span>';
+        g.appendChild(d);
+      });
+    })();
+
+    /* ── toast ───────────────────────────── */
+    function toast(msg, bg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg; t.style.background = bg || '#00b894';
+      t.style.display = 'block';
+      clearTimeout(t._tid);
+      t._tid = setTimeout(function () { t.style.display = 'none'; }, 3000);
+    }
+
+    /* ── speech ──────────────────────────── */
+    function speak(txt) {
+      try {
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance(String(txt));
+        u.lang = 'en-US'; u.rate = 0.9; u.volume = 1;
+        window.speechSynthesis.speak(u);
+      } catch (e) { }
+    }
+
+    /* ── word builder ────────────────────── */
+    function addLetter() {
+      if (curLetter === '?' || !curLetter) {
+        toast('No letter detected yet — show a hand sign', '#e17055'); return;
+      }
+      curWord += curLetter;
+      document.getElementById('wdisp').textContent = curWord;
+      toast('Added: ' + curLetter, '#00b894');
+      speak(curLetter);
+    }
+    function delLetter() {
+      curWord = curWord.slice(0, -1);
+      document.getElementById('wdisp').textContent = curWord || '_';
+    }
+    function clearWord() {
+      curWord = '';
+      document.getElementById('wdisp').textContent = '_';
+      toast('Word cleared', '#636e72');
+    }
+    function addSpace() {
+      curWord += ' ';
+      document.getElementById('wdisp').textContent = curWord;
+    }
+    function speakWord() {
+      if (!curWord.trim()) { toast('No word yet — add letters first!', '#e17055'); speak('No word yet'); return; }
+      toast('Speaking: ' + curWord.trim(), '#6c5ce7');
+      speak(curWord.trim());
+    }
+    function speakAndSave() {
+      if (!curWord.trim()) { toast('No word to save', '#e17055'); return; }
+      var w = curWord.trim();
+      speak(w);
+      wordHistory.unshift({ word: w, time: new Date().toLocaleTimeString() });
+      var hl = document.getElementById('histList');
+      hl.innerHTML = wordHistory.slice(0, 10).map(function (h) {
+        return '<div class="hist-item">' + h.time + ' — <strong style="color:#00D2A8">' + h.word + '</strong></div>';
+      }).join('');
+      toast('Saved and speaking: ' + w, '#00b894');
+    }
+
+    /* ── geometry ────────────────────────── */
+    function ext(lm, tipI, pipI) { return lm[tipI].y < lm[pipI].y - 0.02; }
+    function thumbExt(lm) { return lm[4].x < lm[3].x - 0.01; }
+    function d2(a, b) { return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)); }
+
+    /* ── FULL A–Z ASL CLASSIFIER ─────────── */
+    function classify(lm) {
+      var th = thumbExt(lm);
+      var ix = ext(lm, 8, 6);
+      var mx = ext(lm, 12, 10);
+      var rx = ext(lm, 16, 14);
+      var px = ext(lm, 20, 18);
+      var cnt = [ix, mx, rx, px].filter(Boolean).length;
+
+      /* 0 fingers */
+      if (cnt === 0) {
+        // check thumb position for A vs S vs E vs M/N/T
+        var thumbOverIndex = lm[4].y > lm[6].y;   // thumb tip below index knuckle
+        if (!th && !thumbOverIndex) return 'A';    // fist, thumb at side
+        if (th) return 'S';                       // fist thumb over fingers
+        return 'E';
+      }
+
+      /* 1 finger */
+      if (cnt === 1) {
+        if (ix && th) return 'L';  // L shape — thumb + index
+        if (ix && !th) return 'D';  // D — index only
+        if (px && !th) return 'I';  // I — pinky only
+        if (px && th) return 'Y';  // Y — thumb + pinky
+      }
+
+      /* 2 fingers */
+      if (cnt === 2) {
+        if (ix && mx) {
+          if (th) return 'K';
+          var sp = d2(lm[8], lm[12]);
+          if (sp > 0.07) return 'V';   // V / peace spread
+          if (sp > 0.035) return 'U';  // U close together
+          return 'R';                   // R very close / crossed
+        }
+        if (ix && rx && !mx && !px) return 'X'; // approx hook
+      }
+
+      /* 3 fingers */
+      if (cnt === 3) {
+        if (ix && mx && rx && !px) return 'W';
+        if (ix && mx && px && !rx) return 'H'; // H approx
+      }
+
+      /* 4 fingers */
+      if (cnt === 4) {
+        if (!th) return 'B';   // B flat hand
+        return 'F';            // F approx (thumb + index pinch check below)
+      }
+
+      /* O — thumb + index circle */
+      if (d2(lm[4], lm[8]) < 0.045) return 'O';
+
+      /* C — curved, moderate gap between thumb and index */
+      var tDist = d2(lm[4], lm[8]);
+      if (tDist > 0.07 && tDist < 0.22 && cnt >= 2 && cnt <= 4) return 'C';
+
+      /* F — index + thumb pinch, others up */
+      if (!ix && mx && rx && px && d2(lm[4], lm[8]) < 0.05) return 'F';
+
+      /* G — index pointing sideways + thumb */
+      if (ix && th && !mx && !rx && !px && Math.abs(lm[8].y - lm[5].y) < 0.06) return 'G';
+
+      /* P / Q — index + thumb pointing down */
+      if (ix && th && !mx && !rx && !px && lm[8].y > lm[5].y) return 'P';
+
+      /* T — thumb between index and middle */
+      if (!ix && !mx && !rx && !px && lm[4].y < lm[6].y && lm[4].y > lm[5].y) return 'T';
+
+      return '?';
+    }
+
+    /* ── update UI ───────────────────────── */
+    function updateUI(letter) {
+      curLetter = letter;
+      document.getElementById('bigL').textContent = letter !== '?' ? letter : '?';
+
+      if (letter !== '?' && ACTIONS[letter]) {
+        document.getElementById('snm').textContent = 'Action sign: ' + letter;
+        document.getElementById('sds').textContent = 'Hold steady → ' + ACTIONS[letter].label;
+      } else if (letter !== '?') {
+        document.getElementById('snm').textContent = 'ASL Letter: ' + letter;
+        document.getElementById('sds').textContent = (ALL_LETTERS[letter] || '') + ' — click Add to build a word';
+      } else {
+        document.getElementById('snm').textContent = 'No sign detected';
+        document.getElementById('sds').textContent = 'Show your hand clearly — keep it in frame';
+      }
+
+      Object.keys(ALL_LETTERS).forEach(function (l) {
+        var el = document.getElementById('lc-' + l);
+        if (el) el.className = 'lcell' + (ACTIONS[l] ? ' action-l' : '') + (l === letter ? ' on' : '');
+      });
+      Object.keys(ACTIONS).forEach(function (l) {
+        var c = document.getElementById('card-' + l);
+        if (c) c.className = 'acard' + (l === letter ? ' on' : '');
+      });
+    }
+
+    /* ── hold logic ──────────────────────── */
+    function checkHold(letter) {
+      if (letter !== '?' && letter === lastLetter) {
+        holdCount++;
+        var pct = Math.min(holdCount / holdTarget * 100, 100);
+        document.getElementById('hfill').style.width = pct + '%';
+        document.getElementById('htxt').textContent = 'Confirming ' + letter + ': ' + Math.floor(pct) + '%';
+        if (holdCount >= holdTarget && !fired) {
+          fired = true;
+          triggerAction(letter);
+        }
+      } else {
+        holdCount = 0; fired = false; lastLetter = letter;
+        document.getElementById('hfill').style.width = '0%';
+        document.getElementById('htxt').textContent = 'Hold any sign 2 seconds → triggers action';
+      }
+    }
+
+    function triggerAction(letter) {
+      if (ACTIONS[letter]) {
+        var a = ACTIONS[letter];
+        var card = document.getElementById('card-' + letter);
+        if (card) card.className = 'acard go';
+        toast('🚨 ' + a.label, a.color);
+        speak(a.label + '. Navigating now.');
+        setTimeout(function () { window.location.href = a.url; }, 1800);
+      } else {
+        addLetter();
+        fired = false; holdCount = 0;
+      }
+    }
+
+    /* ── mediapipe ───────────────────────── */
+    var hands = new Hands({
+      locateFile: function (f) {
+        return 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/' + f;
+      }
+    });
+    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.72, minTrackingConfidence: 0.65 });
+    hands.onResults(function (res) {
+      cvs.width = vid.videoWidth || 640;
+      cvs.height = vid.videoHeight || 480;
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+      if (!res.multiHandLandmarks || !res.multiHandLandmarks.length) {
+        updateUI('?'); checkHold('?'); return;
+      }
+      var lm = res.multiHandLandmarks[0];
+
+      /* draw skeleton */
+      if (typeof drawConnectors !== 'undefined') {
+        drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(0,210,168,.75)', lineWidth: 2 });
+        drawLandmarks(ctx, lm, { color: '#00D2A8', radius: 3, lineWidth: 1 });
+      }
+
+      /* draw letter label on canvas */
+      var letter = classify(lm);
+      if (letter !== '?') {
+        var box = res.multiHandLandmarks[0];
+        var xs = box.map(function (p) { return p.x * cvs.width; });
+        var ys = box.map(function (p) { return p.y * cvs.height; });
+        var bx = Math.min.apply(null, xs), by = Math.min.apply(null, ys);
+        ctx.fillStyle = ACTIONS[letter] ? '#E74C3C' : '#00D2A8';
+        ctx.font = 'bold 28px Segoe UI';
+        ctx.fillText(letter, bx, by > 30 ? by - 8 : 30);
+      }
+
+      updateUI(letter);
+      checkHold(letter);
+    });
+
+    /* ── camera ──────────────────────────── */
+    function startCam() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera not supported. Use Google Chrome.'); return;
+      }
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
+        .then(function (s) {
+          stream = s; vid.srcObject = stream;
+          document.getElementById('badge').textContent = '🟢 Hand tracking active';
+          mpCam = new Camera(vid, {
+            onFrame: async function () { await hands.send({ image: vid }); },
+            width: 640, height: 480
+          });
+          mpCam.start();
+          toast('Camera started — show your hand!', '#00b894');
+        })
+        .catch(function (e) {
+          alert('Camera denied. Allow camera permission in browser.\nError: ' + e.message);
+        });
+    }
+
+    function stopCam() {
+      if (mpCam) { mpCam.stop(); mpCam = null; }
+      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      document.getElementById('badge').textContent = 'Camera off';
+      curLetter = '?'; holdCount = 0; updateUI('?');
+      document.getElementById('hfill').style.width = '0%';
+    }
+  </script>
+</body>
+
+</html>

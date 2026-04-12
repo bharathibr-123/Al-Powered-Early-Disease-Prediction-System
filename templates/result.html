@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result — HealthAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #060D1F, #0D1B35);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* ── LANGUAGE BAR ── */
+        .lang-bar {
+            background: #0a1628;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .lang-bar-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, .4);
+            margin-right: 2px;
+            flex-shrink: 0;
+        }
+
+        .lang-btn {
+            padding: 4px 11px;
+            border-radius: 18px;
+            border: 1.5px solid rgba(255, 255, 255, .14);
+            background: transparent;
+            color: rgba(255, 255, 255, .55);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, .07);
+            color: white;
+        }
+
+        .lang-btn.active {
+            border-color: #00D2A8;
+            background: rgba(0, 210, 168, .17);
+            color: #00D2A8;
+            font-weight: 700;
+        }
+
+        /* ── MAIN CARD ── */
+        .outer {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 36px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        /* result top */
+        .result-top {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .result-icon {
+            font-size: 52px;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .danger {
+            color: #e53935;
+        }
+
+        .success {
+            color: #43a047;
+        }
+
+        /* risk meter */
+        .meter-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .meter-track {
+            height: 14px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        .fill-danger {
+            background: linear-gradient(90deg, #ff9800, #e53935);
+        }
+
+        .fill-success {
+            background: linear-gradient(90deg, #66bb6a, #43a047);
+        }
+
+        /* confidence */
+        .prob-box {
+            text-align: center;
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .prob-box .big {
+            font-size: 38px;
+            font-weight: 800;
+        }
+
+        .prob-box p {
+            color: #999;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        /* ── COMPARISON BOX (the NEW feature) ── */
+        .compare-box {
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 18px;
+            border: 2px solid;
+        }
+
+        .compare-box.improved {
+            border-color: #43a047;
+            background: #f0fff0;
+        }
+
+        .compare-box.worsened {
+            border-color: #e53935;
+            background: #fff0f0;
+        }
+
+        .compare-box.stable {
+            border-color: #ff9800;
+            background: #fff8f0;
+        }
+
+        .compare-box.no-prev {
+            border-color: #ddd;
+            background: #fafafa;
+        }
+
+        .compare-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .compare-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .compare-prev {
+            text-align: center;
+            flex: 1;
+        }
+
+        .compare-arrow {
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .compare-curr {
+            text-align: center;
+            flex: 1;
+        }
+
+        .compare-val {
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .compare-label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .compare-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .badge-improved {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-worsened {
+            background: #fce4ec;
+            color: #c62828;
+        }
+
+        .badge-stable {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .compare-diff {
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .no-prev-text {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* feature importance */
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #555;
+            margin: 14px 0 8px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .feat-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 7px;
+        }
+
+        .feat-name {
+            font-size: 12px;
+            color: #666;
+            width: 145px;
+            flex-shrink: 0;
+        }
+
+        .feat-track {
+            flex: 1;
+            height: 8px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .feat-fill {
+            height: 100%;
+            background: #764ba2;
+            border-radius: 5px;
+        }
+
+        .feat-pct {
+            font-size: 12px;
+            color: #999;
+            width: 36px;
+            text-align: right;
+        }
+
+        /* patient summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .sum-item {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .sum-item strong {
+            display: block;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .sum-item span {
+            color: #999;
+            font-size: 11px;
+        }
+
+        /* save to history */
+        .save-box {
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .save-box h3 {
+            font-size: 13px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .save-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .save-row select {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+        }
+
+        .save-btn {
+            padding: 9px 16px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .save-btn:hover {
+            background: #34495e;
+        }
+
+        .save-note {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 6px;
+        }
+
+        /* advice */
+        .advice {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.7;
+            padding: 12px;
+            border-left: 4px solid;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 16px;
+        }
+
+        .advice.danger {
+            border-color: #e53935;
+            background: #fff5f5;
+        }
+
+        .advice.success {
+            border-color: #43a047;
+            background: #f5fff5;
+        }
+
+        /* buttons */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-home {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .btn-history {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        @media(max-width:500px) {
+            .card {
+                padding: 22px;
+            }
+
+            .compare-val {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── LANGUAGE BAR ── -->
+    <div class="lang-bar" id="langBar">
+        <span class="lang-bar-label">🌐 Language:</span>
+    </div>
+
+    <div class="outer">
+        <div class="card">
+
+            <!-- Result header -->
+            <div class="result-top">
+                <div class="result-icon">{{ '⚠️' if color == 'danger' else '✅' }}</div>
+                <div class="result-title {{ color }}" data-t="{{ 'high_risk' if color == 'danger' else 'low_risk' }}">
+                    {{ result }} of {{ disease }}
+                </div>
+            </div>
+
+            <!-- Risk meter -->
+            <div class="meter-row"><span>Low Risk</span><span>High Risk</span></div>
+            <div class="meter-track">
+                <div class="meter-fill fill-{{ color }}" style="width:{{ probability }}%"></div>
+            </div>
+
+            <!-- Confidence score -->
+            <div class="prob-box">
+                <div class="big {{ color }}">{{ probability }}%</div>
+                <p data-t="confidence">Model Confidence</p>
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════
+         COMPARISON WITH PREVIOUS PREDICTION
+         This is the key new feature judges will see
+         ══════════════════════════════════════════════════════ -->
+            {% if prev_prediction and prev_prediction.probability is not none %}
+
+            {% set current = probability | float %}
+            {% set previous = prev_prediction.probability | float %}
+            {% set diff = (current - previous) | abs %}
+
+            {% if current < previous %} {% set trend='improved' %} {% elif current> previous %}
+                {% set trend = 'worsened' %}
+                {% else %}
+                {% set trend = 'stable' %}
+                {% endif %}
+
+                <div class="compare-box {{ trend }}">
+                    <div class="compare-title">
+                        {% if trend == 'improved' %}✅
+                        {% elif trend == 'worsened' %}⚠️
+                        {% else %}➡️
+                        {% endif %}
+                        <span>Comparison with Previous {{ disease }} Prediction</span>
+                    </div>
+
+                    <div class="compare-row">
+
+                        <div class="compare-prev">
+                            <div class="compare-val" style="color:#888">
+                                {{ previous }}%
+                            </div>
+                            <div class="compare-label">
+                                Previous ({{ prev_prediction.predicted_at[:10] }})
+                            </div>
+                            <div style="font-size:11px;color:#aaa;margin-top:3px;">
+                                {{ prev_prediction.risk_level }}
+                            </div>
+                        </div>
+
+                        <div class="compare-arrow">
+                            {% if trend == 'improved' %}📉
+                            {% elif trend == 'worsened' %}📈
+                            {% else %}➡️
+                            {% endif %}
+                        </div>
+
+                        <div class="compare-curr">
+                            <div class="compare-val {{ color }}">
+                                {{ current }}%
+                            </div>
+                            <div class="compare-label">Current (Today)</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:3px;">
+                                {{ result }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="compare-diff">
+                        {% if trend == 'improved' %}
+                        <span class="compare-badge badge-improved">
+                            ✅ Risk reduced by {{ diff }}% — Patient has IMPROVED!
+                        </span>
+                        {% elif trend == 'worsened' %}
+                        <span class="compare-badge badge-worsened">
+                            ⚠️ Risk increased by {{ diff }}% — Needs immediate attention
+                        </span>
+                        {% else %}
+                        <span class="compare-badge badge-stable">
+                            ➡️ Risk is stable — No significant change
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    {% if trend == 'improved' %}
+                    <p style="font-size:11px;color:#555;margin-top:8px;text-align:center;">
+                        Great progress! The patient's health indicators have improved since the last check.
+                    </p>
+                    {% elif trend == 'worsened' %}
+                    <p style="font-size:11px;color:#555;margin-top:8px;text-align:center;">
+                        The risk has increased. Please consult a doctor immediately.
+                    </p>
+                    {% endif %}
+
+                </div>
+
+                {% else %}
+
+                <div class="compare-box no-prev">
+                    <div class="compare-title">📊 Comparison with Previous Prediction</div>
+                    <p class="no-prev-text">
+                        {% if patient_id %}
+                        This is the first {{ disease }} prediction for this patient.
+                        {% else %}
+                        Save this result to a patient profile to enable comparison tracking.
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% endif %}
+
+                <div class="compare-box {{ trend }}">
+                    <div class="compare-title">
+                        {% if trend == 'improved' %}✅{% elif trend == 'worsened' %}⚠️{% else %}➡️{% endif %}
+                        <span>Comparison with Previous {{ disease }} Prediction</span>
+                    </div>
+                    <div class="compare-row">
+                        <div class="compare-prev">
+                            <div class="compare-val" style="color:#888">{{ prev_prediction.probability }}%</div>
+                            <div class="compare-label">Previous ({{ prev_prediction.predicted_at[:10] }})</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:3px;">{{ prev_prediction.risk_level }}
+                            </div>
+                        </div>
+                        <div class="compare-arrow">
+                            {% if trend == 'improved' %}📉{% elif trend == 'worsened' %}📈{% else %}➡️{% endif %}
+                        </div>
+                        <div class="compare-curr">
+                            <div class="compare-val {{ color }}">{{ probability }}%</div>
+                            <div class="compare-label">Current (Today)</div>
+                            <div style="font-size:11px;color:#aaa;margin-top:3px;">{{ result }}</div>
+                        </div>
+                    </div>
+                    <div class="compare-diff">
+                        {% if trend == 'improved' %}
+                        <span class="compare-badge badge-improved">
+                            ✅ Risk reduced by {{ diff }}% — Patient has IMPROVED!
+                        </span>
+                        {% elif trend == 'worsened' %}
+                        <span class="compare-badge badge-worsened">
+                            ⚠️ Risk increased by {{ diff }}% — Needs immediate attention
+                        </span>
+                        {% else %}
+                        <span class="compare-badge badge-stable">
+                            ➡️ Risk is stable — No significant change
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% if trend == 'improved' %}
+                    <p style="font-size:11px;color:#555;margin-top:8px;text-align:center;">
+                        Great progress! The patient's health indicators have improved since the last check. Continue
+                        current lifestyle changes.
+                    </p>
+                    {% elif trend == 'worsened' %}
+                    <p style="font-size:11px;color:#555;margin-top:8px;text-align:center;">
+                        The risk has increased. Please consult a doctor immediately and review lifestyle factors.
+                    </p>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="compare-box no-prev">
+                    <div class="compare-title">📊 Comparison with Previous Prediction</div>
+                    <p class="no-prev-text">
+                        {% if patient_id %}
+                        This is the first {{ disease }} prediction for this patient. Future predictions will show
+                        progress comparison here automatically.
+                        {% else %}
+                        Save this result to a patient profile to enable comparison tracking across visits.
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Feature importance -->
+                <div class="section-title" data-t="risk_factors">Top Risk Factors</div>
+                {% for feature in features %}
+                <div class="feat-row">
+                    <span class="feat-name">{{ feature.name }}</span>
+                    <div class="feat-track">
+                        <div class="feat-fill" style="width:{{ feature.importance }}%"></div>
+                    </div>
+                    <span class="feat-pct">{{ feature.importance }}%</span>
+                </div>
+                {% endfor %}
+
+                <!-- Patient summary -->
+                <div class="section-title">Patient Summary</div>
+                <div class="summary-grid">
+                    <div class="sum-item"><strong>{{ inputs.age }}</strong><span data-t="age">Age (years)</span></div>
+                    <div class="sum-item"><strong>{{ inputs.bmi }}</strong><span data-t="bmi">BMI</span></div>
+                    <div class="sum-item"><strong>{{ inputs.glucose }}</strong><span data-t="glucose">Glucose
+                            (mg/dL)</span></div>
+                    <div class="sum-item"><strong>{{ inputs.blood_pressure }}</strong><span
+                            data-t="blood_pressure">Blood Pressure</span></div>
+                </div>
+
+                <!-- Save to patient history -->
+                <div class="save-box" style="margin-top:16px;">
+                    <h3>💾 Save Result to Patient History</h3>
+                    <form action="/save_prediction" method="POST">
+                        <input type="hidden" name="disease" value="{{ disease }}">
+                        <input type="hidden" name="risk_level" value="{{ result }}">
+                        <input type="hidden" name="probability" value="{{ probability }}">
+                        <input type="hidden" name="input_data" value="{{ inputs | tojson }}">
+                        <input type="hidden" name="top_factors"
+                            value="{{ features[:3] | map(attribute='name') | join(', ') }}">
+                        <div class="save-row">
+                            <select name="patient_id" required>
+                                <option value="">-- Select patient --</option>
+                                {% for p in all_patients %}
+                                <option value="{{ p.id }}" {% if patient_id|string==p.id|string %}selected{% endif %}>
+                                </option>
+                                {{ p.name }} (Age {{ p.age }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="save-btn" data-t="save_record">Save to History</button>
+                        </div>
+                        <p class="save-note">Saving links this result to the patient's record so future predictions show
+                            improvement comparison.</p>
+                    </form>
+                </div>
+
+                <!-- Advice -->
+                <div class="advice {{ color }}" id="adviceText">
+                    {% if color == 'danger' %}
+                    This result suggests elevated risk. Please consult a doctor for a proper diagnosis. Monitor your
+                    glucose levels and maintain a healthy diet and exercise routine.
+                    {% else %}
+                    Great news! Risk appears low. Keep maintaining a healthy lifestyle with regular medical checkups and
+                    balanced nutrition.
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="btn-row">
+                    <a href="/" class="btn-home" data-t="test_another">Test Another Patient</a>
+                    <a href="/patients" class="btn-history" data-t="history">Patient History</a>
+                </div>
+        </div>
+    </div>
+
+    <!-- ── LANGUAGE SCRIPT ── -->
+    <script>
+        var LANGS = [{ code: 'en', flag: '🇬🇧', name: 'English' }, { code: 'ta', flag: '🇮🇳', name: 'தமிழ்' }, { code: 'hi', flag: '🇮🇳', name: 'हिंदी' }, { code: 'te', flag: '🇮🇳', name: 'తెలుగు' }, { code: 'kn', flag: '🇮🇳', name: 'ಕನ್ನಡ' }, { code: 'ml', flag: '🇮🇳', name: 'മലയാളം' }, { code: 'fr', flag: '🇫🇷', name: 'Français' }, { code: 'ar', flag: '🇸🇦', name: 'العربية' }];
+        var TR = { en: { high_risk: 'High Risk', low_risk: 'Low Risk', confidence: 'Model Confidence', risk_factors: 'Top Risk Factors', test_another: 'Test Another Patient', save_record: 'Save to History', age: 'Age (years)', bmi: 'BMI', glucose: 'Glucose (mg/dL)', blood_pressure: 'Blood Pressure', history: 'Patient History', advice_high: 'This result suggests elevated risk. Please consult a doctor immediately.', advice_low: 'Risk appears low. Maintain a healthy lifestyle.' }, ta: { high_risk: 'அதிக ஆபத்து', low_risk: 'குறைந்த ஆபத்து', confidence: 'மாதிரி நம்பிக்கை', risk_factors: 'முக்கிய ஆபத்து காரணிகள்', test_another: 'மற்றொரு நோயாளி', save_record: 'வரலாற்றில் சேமிக்கவும்', age: 'வயது', bmi: 'உடல் நிறை குறியீடு', glucose: 'குளுக்கோஸ்', blood_pressure: 'இரத்த அழுத்தம்', history: 'நோயாளி வரலாறு', advice_high: 'அதிக ஆபத்து. உடனே மருத்துவரை அணுகவும்.', advice_low: 'ஆபத்து குறைவு. ஆரோக்கியமான வாழ்க்கை முறையை பராமரிக்கவும்.' }, hi: { high_risk: 'उच्च जोखिम', low_risk: 'कम जोखिम', confidence: 'मॉडल विश्वास', risk_factors: 'शीर्ष जोखिम कारक', test_another: 'दूसरे मरीज की जाँच', save_record: 'इतिहास में सहेजें', age: 'आयु', bmi: 'बीएमआई', glucose: 'ग्लूकोज', blood_pressure: 'रक्तचाप', history: 'मरीज इतिहास', advice_high: 'उच्च जोखिम। तुरंत डॉक्टर से मिलें।', advice_low: 'जोखिम कम है। स्वस्थ जीवनशैली बनाए रखें।' }, te: { high_risk: 'అధిక ప్రమాదం', low_risk: 'తక్కువ ప్రమాదం', confidence: 'మోడల్ నమ్మకం', risk_factors: 'ప్రధాన ప్రమాద కారకాలు', test_another: 'మరొక రోగి', save_record: 'చరిత్రలో సేవ్ చేయండి', age: 'వయస్సు', bmi: 'BMI', glucose: 'గ్లూకోజ్', blood_pressure: 'రక్తపోటు', history: 'రోగి చరిత్ర', advice_high: 'అధిక ప్రమాదం. వెంటనే వైద్యుడిని సంప్రదించండి.', advice_low: 'ప్రమాదం తక్కువ. ఆరోగ్యకరమైన జీవనశైలి కొనసాగించండి.' }, kn: { high_risk: 'ಹೆಚ್ಚಿನ ಅಪಾಯ', low_risk: 'ಕಡಿಮೆ ಅಪಾಯ', confidence: 'ಮಾದರಿ ವಿಶ್ವಾಸ', risk_factors: 'ಪ್ರಮುಖ ಅಪಾಯ ಅಂಶಗಳು', test_another: 'ಇನ್ನೊಬ್ಬ ರೋಗಿ', save_record: 'ಇತಿಹಾಸದಲ್ಲಿ ಉಳಿಸಿ', age: 'ವಯಸ್ಸು', bmi: 'BMI', glucose: 'ಗ್ಲೂಕೋಸ್', blood_pressure: 'ರಕ್ತದ ಒತ್ತಡ', history: 'ರೋಗಿ ಇತಿಹಾಸ', advice_high: 'ಹೆಚ್ಚಿನ ಅಪಾಯ. ತಕ್ಷಣ ವೈದ್ಯರನ್ನು ಸಂಪರ್ಕಿಸಿ.', advice_low: 'ಅಪಾಯ ಕಡಿಮೆ. ಆರೋಗ್ಯಕರ ಜೀವನಶೈಲಿ ಕಾಪಾಡಿ.' }, ml: { high_risk: 'ഉയർന്ന അപകടം', low_risk: 'കുറഞ്ഞ അപകടം', confidence: 'മോഡൽ വിശ്വാസ്യത', risk_factors: 'പ്രധാന അപകട ഘടകങ്ങൾ', test_another: 'മറ്റൊരു രോഗി', save_record: 'ചരിത്രത്തിൽ സേവ് ചെയ്യുക', age: 'പ്രായം', bmi: 'BMI', glucose: 'ഗ്ലൂക്കോസ്', blood_pressure: 'രക്തസമ്മർദ്ദം', history: 'രോഗി ചരിത്രം', advice_high: 'ഉയർന്ന അപകടം. ഉടൻ ഡോക്ടറെ കാണുക.', advice_low: 'അപകടം കുറവ്. ആരോഗ്യകരമായ ജീവിതം നിലനിർത്തുക.' }, fr: { high_risk: 'Risque élevé', low_risk: 'Faible risque', confidence: 'Confiance du modèle', risk_factors: 'Facteurs de risque', test_another: 'Autre patient', save_record: "Enregistrer", age: 'Âge', bmi: 'IMC', glucose: 'Glucose', blood_pressure: 'Tension', history: 'Historique', advice_high: 'Risque élevé. Consultez un médecin immédiatement.', advice_low: 'Risque faible. Maintenez un mode de vie sain.' }, ar: { high_risk: 'خطر مرتفع', low_risk: 'خطر منخفض', confidence: 'ثقة النموذج', risk_factors: 'عوامل الخطر', test_another: 'مريض آخر', save_record: 'حفظ', age: 'العمر', bmi: 'مؤشر الجسم', glucose: 'الجلوكوز', blood_pressure: 'ضغط الدم', history: 'سجل المريض', advice_high: 'خطر مرتفع. استشر الطبيب فوراً.', advice_low: 'خطر منخفض. حافظ على صحتك.' } };
+        var CL = localStorage.getItem('healthai_lang') || 'en';
+        function t(k) { var l = TR[CL] || TR.en; return l[k] || TR.en[k] || k; }
+        function setLang(c) { CL = c; localStorage.setItem('healthai_lang', c); buildBar(); applyAll(); document.body.dir = c === 'ar' ? 'rtl' : 'ltr'; }
+        function buildBar() { var b = document.getElementById('langBar'); if (!b) return; var h = '<span class="lang-bar-label">🌐 Language:</span>'; LANGS.forEach(function (l) { h += '<button class="lang-btn' + (l.code === CL ? ' active' : '') + '" onclick="setLang(\'' + l.code + '\')">' + l.flag + ' ' + l.name + '</button>'; }); b.innerHTML = h; }
+        function applyAll() { document.querySelectorAll('[data-t]').forEach(function (el) { el.textContent = t(el.getAttribute('data-t')); }); document.querySelectorAll('[data-tp]').forEach(function (el) { el.placeholder = t(el.getAttribute('data-tp')); }); var adv = document.getElementById('adviceText'); if (adv) { var isDanger = adv.classList.contains('danger'); adv.textContent = isDanger ? t('advice_high') : t('advice_low'); } }
+        document.addEventListener('DOMContentLoaded', function () { buildBar(); applyAll(); if (CL === 'ar') document.body.dir = 'rtl'; });
+    </script>
+
+</body>
+
+
+</html>

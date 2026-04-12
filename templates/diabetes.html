@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Diabetes Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .back {
+            font-size: 13px;
+            color: #764ba2;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #4a0080;
+            margin-bottom: 6px;
+            font-size: 24px;
+        }
+
+        p.subtitle {
+            color: #888;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #aaa;
+        }
+
+        button {
+            margin-top: 24px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <a href="/" class="back">← Back to home</a>
+        <h1>🩸 Diabetes Risk Predictor</h1>
+        <p class="subtitle">Enter patient details below to get an AI-powered prediction</p>
+        <form action="/predict/diabetes" method="POST">
+            <div class="grid">
+                <div class="field">
+                    <label data-t="Pregnancies">Pregnancies</label>
+                    <input type="number" name="pregnancies" placeholder="e.g. 2" required min="0">
+                    <span class="hint">Number of times pregnant</span>
+                </div>
+                <div class="field">
+                    <label data-t="Glucose Level">Glucose Level</label>
+                    <input type="number" name="glucose" placeholder="e.g. 120" required>
+                    <span class="hint">Plasma glucose (mg/dL)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Blood Pressure">Blood Pressure</label>
+                    <input type="number" name="blood_pressure" placeholder="e.g. 70" required>
+                    <span class="hint">Diastolic (mm Hg)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Skin Thickness">Skin Thickness</label>
+                    <input type="number" name="skin_thickness" placeholder="e.g. 20" required>
+                    <span class="hint">Triceps fold (mm)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Insulin">Insulin</label>
+                    <input type="number" name="insulin" placeholder="e.g. 80" required>
+                    <span class="hint">2-Hour serum insulin</span>
+                </div>
+                <div class="field">
+                    <label data-t="BMI">BMI</label>
+                    <input type="number" name="bmi" placeholder="e.g. 25.5" step="0.1" required>
+                    <span class="hint">Weight / Height² (kg/m²)</span>
+                </div>
+                <div class="field">
+                    <label data-t="Diabetes Pedigree">Diabetes Pedigree</label>
+                    <input type="number" name="dpf" placeholder="e.g. 0.5" step="0.001" required>
+                    <span class="hint">Family history score</span>
+                </div>
+                <div class="field">
+                    <label data-t="Age">Age</label>
+                    <input type="number" name="age" placeholder="e.g. 33" required min="1">
+                    <span class="hint">Age in years</span>
+                </div>
+            </div>
+            <button type="submit" data-t="submit">Predict Diabetes Risk</button>
+        </form>
+    </div>
+
+
+</body>
+
+
+</html>

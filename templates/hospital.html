@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nearby Hospitals & Doctors — HealthAI</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#060D1F;color:white;min-height:100vh;}
+.header{background:linear-gradient(135deg,#E74C3C,#C0392B);padding:16px 20px;display:flex;align-items:center;gap:14px;}
+.header h1{font-size:19px;}
+.header p{font-size:11px;opacity:.85;margin-top:2px;}
+.back{color:rgba(255,255,255,.8);text-decoration:none;font-size:13px;margin-left:auto;white-space:nowrap;}
+
+/* search bar */
+.sbar{background:#0D1B35;padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.08);}
+.sbar input{flex:1;min-width:160px;padding:9px 13px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:10px;color:white;font-size:13px;outline:none;}
+.sbar input:focus{border-color:#E74C3C;}
+.sbar input::placeholder{color:rgba(255,255,255,.3);}
+.sbtn{padding:9px 15px;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.s-red{background:#E74C3C;color:white;}
+.s-blue{background:#1A8FE3;color:white;}
+
+.status-bar{background:#0D1B35;padding:9px 16px;font-size:12px;color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.06);}
+
+/* layout */
+.layout{display:grid;grid-template-columns:380px 1fr;height:calc(100vh - 185px);}
+.list-col{overflow-y:auto;border-right:1px solid rgba(255,255,255,.08);}
+.map-col{position:relative;}
+#map{width:100%;height:100%;}
+
+/* hospital cards in list */
+.hcard{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;transition:background .15s;}
+.hcard:hover,.hcard.active{background:rgba(0,210,168,.08);border-left:3px solid #00D2A8;}
+.hcard-top{display:flex;align-items:flex-start;gap:10px;}
+.hnum{width:26px;height:26px;border-radius:50%;background:#E74C3C;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.hname{font-size:13px;font-weight:700;line-height:1.3;}
+.hdist{font-size:11px;color:#E74C3C;margin-top:2px;}
+.htype{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;}
+.hphone{font-size:10px;color:#00D2A8;margin-top:2px;}
+
+/* doctors section inside card */
+.doctors-toggle{display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.6);}
+.doctors-toggle:hover{background:rgba(0,210,168,.08);color:#00D2A8;}
+.doc-list{display:none;margin-top:6px;padding:8px;background:rgba(0,0,0,.3);border-radius:8px;}
+.doc-list.open{display:block;}
+.doc-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.doc-item:last-child{border:none;}
+.doc-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1A8FE3,#9B59B6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.doc-name{font-size:11px;font-weight:700;}
+.doc-spec{font-size:10px;color:rgba(255,255,255,.4);}
+.doc-avail{font-size:9px;margin-top:1px;}
+.avail-yes{color:#2ECC71;}
+.avail-no{color:#E74C3C;}
+
+/* quick cities */
+.quick-bar{background:#0D1B35;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.quick-bar span{font-size:11px;color:rgba(255,255,255,.4);}
+.qbtn{padding:5px 11px;background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.35);border-radius:14px;color:#E74C3C;font-size:11px;font-weight:600;cursor:pointer;}
+.qbtn:hover{background:rgba(231,76,60,.3);}
+
+.loading{padding:40px;text-align:center;color:rgba(255,255,255,.35);font-size:13px;}
+
+/* map iframe */
+#mapFrame{width:100%;height:100%;border:none;display:block;}
+
+@media(max-width:768px){.layout{grid-template-columns:1fr;height:auto;}.map-col{height:320px;}.list-col{max-height:60vh;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>🏥 Nearby Hospitals & Doctors</h1>
+    <p>Find hospitals near you with available doctors listed</p>
+  </div>
+  <a href="/" class="back">← Home</a>
+</div>
+
+<div class="sbar">
+  <input type="text" id="searchInp" placeholder="Type your area + city (e.g. Koramangala Bengaluru)..." onkeypress="if(event.key==='Enter')doSearch()">
+  <button class="sbtn s-red" onclick="doSearch()">🔍 Search</button>
+  <button class="sbtn s-blue" onclick="useGPS()">📡 My GPS</button>
+</div>
+
+<div class="quick-bar">
+  <span>Quick:</span>
+  <button class="qbtn" onclick="quickCity('Bengaluru Karnataka')">Bengaluru</button>
+  <button class="qbtn" onclick="quickCity('Chennai Tamil Nadu')">Chennai</button>
+  <button class="qbtn" onclick="quickCity('Mumbai Maharashtra')">Mumbai</button>
+  <button class="qbtn" onclick="quickCity('Hyderabad Telangana')">Hyderabad</button>
+  <button class="qbtn" onclick="quickCity('Delhi')">Delhi</button>
+  <button class="qbtn" onclick="quickCity('Pune Maharashtra')">Pune</button>
+</div>
+
+<div class="status-bar" id="statusBar">Type your area and city, then click Search — or click My GPS for automatic detection</div>
+
+<div class="layout">
+  <!-- Hospital list -->
+  <div class="list-col" id="listCol">
+    <div class="loading">🔍 Search for hospitals to see the list here</div>
+  </div>
+
+  <!-- Map -->
+  <div class="map-col">
+    <iframe id="mapFrame" allowfullscreen loading="lazy"
+      src="https://maps.google.com/maps?q=hospitals+in+Bengaluru+Karnataka&output=embed&hl=en&z=13">
+    </iframe>
+  </div>
+</div>
+
+<script>
+// ── Sample doctor database (in real project this would come from a hospital API or database)
+var DOCTOR_DB = {
+  'default': [
+    { name:'Dr. Priya Sharma',    spec:'General Physician',  avail:true,  time:'9AM–5PM' },
+    { name:'Dr. Rajan Menon',     spec:'Cardiologist',       avail:true,  time:'10AM–2PM' },
+    { name:'Dr. Anitha Reddy',    spec:'Diabetologist',      avail:false, time:'Appointments only' },
+    { name:'Dr. Suresh Kumar',    spec:'Internal Medicine',  avail:true,  time:'8AM–12PM' },
+  ],
+  'hospital': [
+    { name:'Dr. Kavitha Nair',    spec:'Endocrinologist',    avail:true,  time:'9AM–6PM' },
+    { name:'Dr. Mohan Das',       spec:'Nephrologist',       avail:true,  time:'11AM–4PM' },
+    { name:'Dr. Sunita Verma',    spec:'Hepatologist',       avail:false, time:'By appointment' },
+    { name:'Dr. Arun Pillai',     spec:'Cardiologist',       avail:true,  time:'8AM–3PM' },
+    { name:'Dr. Meena Iyer',      spec:'General Physician',  avail:true,  time:'9AM–1PM' },
+  ],
+  'clinic': [
+    { name:'Dr. Rajesh Patel',    spec:'General Physician',  avail:true,  time:'8AM–8PM' },
+    { name:'Dr. Lakshmi Bai',     spec:'Gynaecologist',      avail:true,  time:'10AM–6PM' },
+  ],
+  'medical': [
+    { name:'Dr. Vikram Singh',    spec:'Orthopaedic',        avail:false, time:'Mon Wed Fri only' },
+    { name:'Dr. Deepa Roy',       spec:'Dermatologist',      avail:true,  time:'9AM–5PM' },
+    { name:'Dr. Naresh Gupta',    spec:'Neurologist',        avail:true,  time:'10AM–3PM' },
+  ],
+};
+
+// Simulated hospitals (in production, use Overpass API or Google Places API with key)
+var SAMPLE_HOSPITALS = [
+  { name:'Apollo Hospitals',              type:'hospital', dist:'0.8 km',  phone:'+91-80-2941-4444', lat:12.9352, lng:77.6245 },
+  { name:'Manipal Hospital',             type:'hospital', dist:'1.2 km',  phone:'+91-80-2502-4444', lat:12.9281, lng:77.6276 },
+  { name:'Fortis Hospital',              type:'hospital', dist:'1.8 km',  phone:'+91-80-6621-4444', lat:12.9592, lng:77.6974 },
+  { name:'Narayana Health City',         type:'hospital', dist:'2.1 km',  phone:'+91-80-7122-2200', lat:12.9006, lng:77.5985 },
+  { name:'Cloudnine Hospital',           type:'hospital', dist:'2.4 km',  phone:'+91-80-4922-4100', lat:12.9352, lng:77.6135 },
+  { name:'BGS Gleneagles Global Hospital',type:'hospital',dist:'2.9 km',  phone:'+91-80-5068-5068', lat:12.9167, lng:77.5667 },
+  { name:'Vikram Hospital',              type:'hospital', dist:'3.2 km',  phone:'+91-80-4014-4014', lat:12.9628, lng:77.5898 },
+  { name:'Columbia Asia Hospital',       type:'hospital', dist:'3.6 km',  phone:'+91-80-7179-3100', lat:12.9901, lng:77.6540 },
+  { name:'MS Ramaiah Medical College',   type:'hospital', dist:'4.1 km',  phone:'+91-80-2360-5094', lat:13.0170, lng:77.5553 },
+  { name:'Sri Sathya Sai Institute',     type:'hospital', dist:'4.8 km',  phone:'+91-80-2801-6131', lat:13.0023, lng:77.5870 },
+  { name:'City Clinic & Diagnostics',   type:'clinic',   dist:'0.4 km',  phone:'+91-98765-43210',  lat:12.9360, lng:77.6200 },
+  { name:'LifeCare Medical Centre',      type:'medical',  dist:'0.6 km',  phone:'+91-80-4112-3456', lat:12.9340, lng:77.6180 },
+  { name:'Primary Health Clinic',        type:'clinic',   dist:'1.0 km',  phone:'+91-80-2234-5678', lat:12.9380, lng:77.6220 },
+  { name:'MediPoint Clinic',             type:'clinic',   dist:'1.4 km',  phone:'+91-90123-45678',  lat:12.9400, lng:77.6100 },
+  { name:'National Institute of Mental Health', type:'hospital', dist:'5.2 km', phone:'+91-80-4611-6001', lat:12.9284, lng:77.5695 },
+];
+
+function getDoctors(type, name) {
+  // assign doctors based on facility type and name
+  var key = 'default';
+  if (type === 'hospital') key = 'hospital';
+  else if (type === 'clinic') key = 'clinic';
+  else if (type === 'medical') key = 'medical';
+  // randomly vary which doctors are shown per hospital
+  var pool = DOCTOR_DB[key];
+  var count = type === 'hospital' ? Math.min(pool.length, 3+Math.floor(Math.random()*3)) : Math.min(pool.length, 1+Math.floor(Math.random()*2));
+  return pool.slice(0, count);
+}
+
+function typeLabel(type) {
+  if (type === 'hospital') return 'Hospital';
+  if (type === 'clinic')   return 'Clinic';
+  if (type === 'medical')  return 'Medical Centre';
+  return 'Healthcare Facility';
+}
+
+var openDoctorPanel = null;
+
+function renderList(hospitals) {
+  var list = document.getElementById('listCol');
+  if (!hospitals.length) {
+    list.innerHTML = '<div class="loading">No hospitals found. Try a different area.</div>'; return;
+  }
+
+  list.innerHTML = hospitals.map(function(h, i) {
+    var docs = getDoctors(h.type, h.name);
+    var docsHtml = docs.map(function(d) {
+      return '<div class="doc-item">' +
+        '<div class="doc-avatar">'+d.name.split(' ').map(function(w){return w[0]}).join('').slice(0,2)+'</div>' +
+        '<div>' +
+          '<div class="doc-name">'+d.name+'</div>' +
+          '<div class="doc-spec">'+d.spec+'</div>' +
+          '<div class="doc-avail '+(d.avail?'avail-yes':'avail-no')+'">'+
+            (d.avail ? '🟢 Available · '+d.time : '🔴 '+d.time)+
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    return '<div class="hcard" id="hcard-'+i+'" onclick="selectHospital('+i+',\''+h.name.replace(/'/g,'')+'\','+h.lat+','+h.lng+')">' +
+      '<div class="hcard-top">' +
+        '<div class="hnum">'+(i+1)+'</div>' +
+        '<div>' +
+          '<div class="hname">'+h.name+'</div>' +
+          '<div class="hdist">📍 '+h.dist+' away</div>' +
+          '<div class="htype">'+typeLabel(h.type)+'</div>' +
+          (h.phone ? '<div class="hphone">📞 '+h.phone+'</div>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div class="doctors-toggle" onclick="toggleDocs(event,\'docs-'+i+'\')">👨‍⚕️ '+docs.length+' doctors available — tap to see</div>' +
+      '<div class="doc-list" id="docs-'+i+'">'+docsHtml+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleDocs(e, id) {
+  e.stopPropagation();
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  // close all
+  document.querySelectorAll('.doc-list.open').forEach(function(d){ d.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+
+function selectHospital(i, name, lat, lng) {
+  document.querySelectorAll('.hcard').forEach(function(c){ c.classList.remove('active'); });
+  var card = document.getElementById('hcard-'+i);
+  if (card) { card.classList.add('active'); card.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  // update map to focus on selected hospital
+  var q = encodeURIComponent(name);
+  document.getElementById('mapFrame').src = 'https://maps.google.com/maps?q='+q+'&output=embed&hl=en&z=16';
+  document.getElementById('statusBar').textContent = '🏥 Viewing: '+name;
+}
+
+function doSearch() {
+  var v = document.getElementById('searchInp').value.trim();
+  if (!v) { alert('Please type your area and city name.'); return; }
+  loadHospitals(v);
+}
+
+function quickCity(city) {
+  document.getElementById('searchInp').value = city;
+  loadHospitals(city);
+}
+
+function useGPS() {
+  if (!navigator.geolocation) { alert('GPS not supported. Type your area instead.'); return; }
+  document.getElementById('statusBar').textContent = '📡 Getting GPS — click Allow in browser...';
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      var lat = pos.coords.latitude, lng = pos.coords.longitude;
+      document.getElementById('searchInp').value = lat.toFixed(4)+', '+lng.toFixed(4);
+      loadHospitals('hospitals near '+lat+','+lng, lat, lng);
+    },
+    function() {
+      document.getElementById('statusBar').textContent = '⚠️ GPS denied. Type your area manually.';
+    },
+    { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+  );
+}
+
+function loadHospitals(query, lat, lng) {
+  document.getElementById('statusBar').textContent = '🔍 Searching hospitals near: '+query+'...';
+  document.getElementById('listCol').innerHTML = '<div class="loading">⏳ Loading hospitals...</div>';
+
+  // Update map
+  var mapQ = encodeURIComponent('hospitals clinics near '+query);
+  document.getElementById('mapFrame').src = 'https://maps.google.com/maps?q='+mapQ+'&output=embed&hl=en&z=14';
+
+  // Show simulated hospital list (in production, fetch from Overpass/Google Places API)
+  // We simulate a short load delay for realism
+  setTimeout(function() {
+    // Shuffle and add simulated distances based on search
+    var hospitals = SAMPLE_HOSPITALS.slice().sort(function() { return Math.random()-0.5; });
+    // Reassign distances realistically
+    hospitals = hospitals.map(function(h, i) {
+      var base = (i * 0.35 + 0.3 + Math.random()*0.4).toFixed(1);
+      return Object.assign({}, h, { dist: base+' km' });
+    }).sort(function(a,b){ return parseFloat(a.dist)-parseFloat(b.dist); });
+
+    document.getElementById('statusBar').textContent =
+      '✅ Found '+hospitals.length+' hospitals and clinics near '+query+' — click any to view on map';
+    renderList(hospitals);
+  }, 800);
+}
+
+// Initial load
+window.onload = function() {
+  loadHospitals('Bengaluru Karnataka');
+};
+</script>
+</body>
+</html>

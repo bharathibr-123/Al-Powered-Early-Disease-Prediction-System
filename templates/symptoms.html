@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Symptom Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 36px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .back {
+            color: #8e44ad;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 6px;
+            font-size: 24px;
+        }
+
+        p.sub {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .symptom-chip {
+            padding: 10px 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .symptom-chip.selected {
+            border-color: #8e44ad;
+            background: #f3e5f5;
+            color: #6a1b9a;
+            font-weight: 600;
+        }
+
+        button.check-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8e44ad, #3498db);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+        }
+
+        .result-emoji {
+            font-size: 28px;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .result-detail {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .result-bar-track {
+            height: 8px;
+            background: #eee;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+
+        .result-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #8e44ad, #3498db);
+        }
+
+        .result-pct {
+            font-size: 14px;
+            font-weight: 700;
+            color: #8e44ad;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .no-result {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <a href="/" class="back">← Back to home</a>
+        <h1>🔍 Symptom Disease Checker</h1>
+        <p class="sub">Select all symptoms you are experiencing and we'll identify possible conditions</p>
+
+        <div class="symptom-grid">
+            <div class="symptom-chip" onclick="toggle(this)" data-s="fatigue">😴 Fatigue</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="chest pain">💢 Chest pain</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="frequent urination">🚿 Freq. urination</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="excessive thirst">💧 Excessive thirst</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="blurred vision">👁️ Blurred vision</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="shortness of breath">😮 Short of breath</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="dizziness">🌀 Dizziness</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="headache">🤕 Headache</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="weight loss">⚖️ Weight loss</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="slow healing">🩹 Slow healing</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="swollen legs">🦵 Swollen legs</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="irregular heartbeat">💓 Irregular heartbeat</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="pale skin">🫙 Pale skin</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="weakness">😔 Weakness</div>
+            <div class="symptom-chip" onclick="toggle(this)" data-s="nausea">🤢 Nausea</div>
+        </div>
+
+        <button class="check-btn" onclick="checkSymptoms()">Identify Disease</button>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        function toggle(el) {
+            el.classList.toggle('selected');
+        }
+
+        function checkSymptoms() {
+            const selected = [...document.querySelectorAll('.symptom-chip.selected')].map(e => e.dataset.s);
+            if (selected.length === 0) { alert('Please select at least one symptom.'); return; }
+
+            fetch('/identify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symptoms: selected })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('results');
+                    container.style.display = 'block';
+                    if (data.results.length === 0) {
+                        container.innerHTML = '<div class="no-result">No matching conditions found. Please consult a doctor.</div>';
+                        return;
+                    }
+                    container.innerHTML = data.results.map(r => `
+            <div class="result-item">
+                <div class="result-emoji">${r.emoji}</div>
+                <div class="result-info">
+                    <div class="result-name">${r.disease}</div>
+                    <div class="result-detail">${r.matches} of ${r.total} symptoms match</div>
+                    <div class="result-bar-track">
+                        <div class="result-bar-fill" style="width:${r.score}%"></div>
+                    </div>
+                </div>
+                <div class="result-pct">${r.score}%</div>
+            </div>
+        `).join('');
+                });
+        }
+    </script>
+</body>
+
+</html>

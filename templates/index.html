@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HealthAI — Early Disease Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0a0e1a;
+            color: white;
+        }
+
+        /* NAV */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 40px;
+            background: rgba(255, 255, 255, .03);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 900;
+            color: #00d2a8;
+        }
+
+        .logo span {
+            color: white;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, .65);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            background: #00d2a8;
+            color: #0a0e1a;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            padding: 80px 40px 60px;
+            background: radial-gradient(ellipse at top, rgba(0, 210, 168, 0.08) 0%, transparent 60%);
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(0, 210, 168, .12);
+            border: 1px solid rgba(0, 210, 168, .3);
+            border-radius: 20px;
+            font-size: 12px;
+            color: #00d2a8;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #00d2a8, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 17px;
+            color: rgba(255, 255, 255, .6);
+            max-width: 560px;
+            margin: 0 auto 36px;
+            line-height: 1.7;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #00d2a8, #0099cc);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary {
+            padding: 14px 32px;
+            background: rgba(255, 255, 255, .08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            opacity: .9;
+            transform: translateY(-2px);
+            transition: all .2s;
+        }
+
+        /* STATS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: rgba(255, 255, 255, .06);
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .stat {
+            background: #0a0e1a;
+            text-align: center;
+            padding: 28px;
+        }
+
+        .stat-n {
+            font-size: 32px;
+            font-weight: 900;
+            color: #00d2a8;
+        }
+
+        .stat-l {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .5);
+            margin-top: 4px;
+        }
+
+        /* FEATURES */
+        .section {
+            padding: 60px 40px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .section-sub {
+            text-align: center;
+            color: rgba(255, 255, 255, .5);
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: #111827;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, .07);
+            text-decoration: none;
+            color: white;
+            display: block;
+            transition: all .2s;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(0, 210, 168, .4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 210, 168, .1);
+        }
+
+        .fc-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .fc-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .fc-desc {
+            font-size: 13px;
+            color: rgba(255, 255, 255, .5);
+            line-height: 1.6;
+        }
+
+        .fc-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(0, 210, 168, .15);
+            color: #00d2a8;
+            border: 1px solid rgba(0, 210, 168, .3);
+        }
+
+        /* HOW IT WORKS */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .step-num {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d2a8, #3498db);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0 auto 12px;
+        }
+
+        .step-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .step-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .5);
+            line-height: 1.6;
+        }
+
+        /* FOOTER */
+        footer {
+            background: #060912;
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, .35);
+        }
+
+        @media(max-width:700px) {
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .steps {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">Health<span>AI</span></div>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/vitals">Vitals</a>
+            <a href="/hospital">Hospitals</a>
+            <a href="/emergency">Emergency</a>
+        </div>
+        <button class="nav-btn" onclick="window.location.href='/diabetes'">Get Started</button>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-badge">🏆 AI-Powered Healthcare Platform</div>
+        <h1>Early Disease Prediction<br><span>Saves Lives</span></h1>
+        <p>Our AI system predicts your risk for 4 major diseases before symptoms appear — giving you time to act, not
+            react.</p>
+        <div class="hero-btns">
+            <a href="/diabetes" class="btn-primary">Start Health Check</a>
+            <a href="/dashboard" class="btn-secondary">View Dashboard</a>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-n">4</div>
+            <div class="stat-l">Diseases Detected</div>
+        </div>
+        <div class="stat">
+            <div class="stat-n">72%</div>
+            <div class="stat-l">Diabetes Accuracy</div>
+        </div>
+        <div class="stat">
+            <div class="stat-n">10+</div>
+            <div class="stat-l">AI Features</div>
+        </div>
+        <div class="stat">
+            <div class="stat-n">Real-time</div>
+            <div class="stat-l">Vitals Monitoring</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Everything You Need</div>
+        <div class="section-sub">10 powerful AI health features in one platform</div>
+        <div class="features-grid">
+            <a href="/diabetes" class="feature-card">
+                <div class="fc-icon">🩸</div>
+                <div class="fc-title">Diabetes Predictor</div>
+                <div class="fc-desc">ML model trained on 768 patients. Predicts risk from glucose, BMI, age and more.
+                </div>
+                <span class="fc-badge">Random Forest · 72% accuracy</span>
+            </a>
+            <a href="/heart" class="feature-card">
+                <div class="fc-icon">❤️</div>
+                <div class="fc-title">Heart Disease</div>
+                <div class="fc-desc">Predicts cardiac risk from 13 clinical parameters including ECG and cholesterol.
+                </div>
+                <span class="fc-badge">Random Forest · 70% accuracy</span>
+            </a>
+            <a href="/liver" class="feature-card">
+                <div class="fc-icon">🫀</div>
+                <div class="fc-title">Liver Disease</div>
+                <div class="fc-desc">Analyses blood enzyme levels to detect early signs of liver dysfunction.</div>
+                <span class="fc-badge">Random Forest · 65% accuracy</span>
+            </a>
+            <a href="/kidney" class="feature-card">
+                <div class="fc-icon">🫘</div>
+                <div class="fc-title">Kidney Disease</div>
+                <div class="fc-desc">Predicts chronic kidney disease from 24 lab parameters with high accuracy.</div>
+                <span class="fc-badge">Random Forest · 100% accuracy</span>
+            </a>
+            <a href="/vitals" class="feature-card">
+                <div class="fc-icon">💓</div>
+                <div class="fc-title">Live Vitals Monitor</div>
+                <div class="fc-desc">Real-time heart rate, SpO2, temperature and blood pressure with ECG waveform and
+                    automatic alerts.</div>
+                <span class="fc-badge">Real-time · Auto alerts</span>
+            </a>
+            <a href="/dashboard" class="feature-card">
+                <div class="fc-icon">📊</div>
+                <div class="fc-title">Health Dashboard</div>
+                <div class="fc-desc">Visual analytics with charts showing your complete risk profile across all
+                    diseases.</div>
+                <span class="fc-badge">Charts · Analytics</span>
+            </a>
+            <a href="/symptoms" class="feature-card">
+                <div class="fc-icon">🔍</div>
+                <div class="fc-title">Symptom Checker</div>
+                <div class="fc-desc">Select symptoms and instantly identify possible conditions with match scores.</div>
+                <span class="fc-badge">AI identifier</span>
+            </a>
+            <a href="/chat" class="feature-card">
+                <div class="fc-icon">🤖</div>
+                <div class="fc-title">AI Health Chatbot</div>
+                <div class="fc-desc">Ask any health question and get instant AI-powered answers and recommendations.
+                </div>
+                <span class="fc-badge">Smart chatbot</span>
+            </a>
+            <a href="/hospital" class="feature-card">
+                <div class="fc-icon">🏥</div>
+                <div class="fc-title">Nearest Hospitals</div>
+                <div class="fc-desc">GPS-powered hospital finder showing all clinics and hospitals near your location.
+                </div>
+                <span class="fc-badge">Live GPS map</span>
+            </a>
+            <a href="/signlanguage" class="feature-card">
+                <div class="fc-icon">🤟</div>
+                <div class="fc-title">ASL Sign Language</div>
+                <div class="fc-desc">Real hand-landmark AI detection for deaf and mute users to communicate health
+                    needs.</div>
+                <span class="fc-badge">MediaPipe AI</span>
+            </a>
+            <a href="/voice" class="feature-card">
+                <div class="fc-icon">🎙️</div>
+                <div class="fc-title">Voice Assistant</div>
+                <div class="fc-desc">Navigate the entire app and fill forms completely hands-free using voice commands.
+                </div>
+                <span class="fc-badge">Speech AI</span>
+            </a>
+            <a href="/emergency" class="feature-card">
+                <div class="fc-icon">🆘</div>
+                <div class="fc-title">Emergency SOS</div>
+                <div class="fc-desc">One-tap emergency alert with all helpline numbers and instant SOS dispatch.</div>
+                <span class="fc-badge">Emergency</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="section" style="background:#060912;">
+        <div class="section-title">How It Works</div>
+        <div class="section-sub">From data to prediction in seconds</div>
+        <div class="steps">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-title">Enter Health Data</div>
+                <div class="step-desc">Fill in your health parameters like glucose, BMI, age and blood pressure</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-title">AI Analyses</div>
+                <div class="step-desc">Our Random Forest model processes 24 parameters trained on real medical datasets
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-title">Get Prediction</div>
+                <div class="step-desc">Receive risk score, confidence level and top contributing health factors</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">4</div>
+                <div class="step-title">Take Action</div>
+                <div class="step-desc">Get personalised recommendations, generate PDF report, find nearest hospital
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>HealthAI — AI-Powered Early Disease Prediction System · Built with Python, Flask and scikit-learn · For
+            educational purposes only</p>
+    </footer>
+    <div class="lang-bar" id="langBar">
+        <span class="lang-bar-label">🌐 Language:</span>
+        <!-- buttons are built by JS below -->
+        <button type="submit" data-t="predict">Predict Now</button>
+        <label data-t="glucose">Glucose Level</label>
+        <p data-t="advice_high">...</p>
+    </div>
+
+
+
+</body>
+
+
+</html>
